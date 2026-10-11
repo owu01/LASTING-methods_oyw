@@ -18,9 +18,17 @@
 # Number of simulations, read by 08-run-models_CRA_only_HUSS_cluster.R
 export NSIM1=1000
 
-# Load R (same version the packages were installed with)
+# Load R 4.5.1 (it sits in the deprecated module tree, which must be loaded first)
 module purge
+module load modtree/deprecated
 module load R/4.5.1
+
+# Stop straight away if R did not load
+if ! command -v Rscript > /dev/null; then
+  echo "Rscript not found: R module did not load" >&2
+  exit 1
+fi
+Rscript --version
 
 # Project folder, so the relative paths in the R script work
 cd /cluster/tufts/lasting/shared/LASTING-methods_oyw_cra
