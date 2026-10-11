@@ -30,14 +30,21 @@ if ! command -v Rscript > /dev/null; then
 fi
 Rscript --version
 
-# Project folder, so the relative paths in the R script work
-cd /cluster/tufts/lasting/shared/LASTING-methods_oyw_cra
+# Project folder (not code/), so the relative paths in the R script work:
+# it reads code/..., data_inputs/... and writes outputs/... from here
+cd /cluster/tufts/lasting/shared/LASTING-methods_oyw_cra || { echo "Project folder not found" >&2; exit 1; }
+
+# Stop straight away if the R script is not where expected
+if [ ! -f code/08-run-models_CRA_only_HUSS_cluster.R ]; then
+  echo "R script not found: code/08-run-models_CRA_only_HUSS_cluster.R" >&2
+  exit 1
+fi
 
 # Record when and where the job ran
 echo "Job $SLURM_JOB_ID started on $(hostname) at $(date)"
 echo "CPUs allocated: $SLURM_CPUS_PER_TASK   Simulations: $NSIM1"
 
 # Run the model
-Rscript 08-run-models_CRA_only_HUSS_cluster.R
+Rscript code/08-run-models_CRA_only_HUSS_cluster.R
 
 echo "Job finished at $(date)"
