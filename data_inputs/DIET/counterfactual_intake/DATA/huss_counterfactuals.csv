@@ -1,0 +1,144 @@
+food,var_label,diet_pattern,CF_mean_intake,CF_se_intake,CF_sd_intake,intake_units
+veg_tot,Vegetables (TOTAL),US20,2.5,0,0.25,cup eq/day
+veg_dg,Dark-Green Vegetables,US20,0.21,0,0.021,cup eq/day
+veg_ro,Red and Orange Vegetables,US20,0.79,0,0.079,cup eq/day
+veg_sta,Starchy Vegetables,US20,0.71,0,0.071,cup eq/day
+veg_oth,Other Vegetables,US20,0.57,0,0.057,cup eq/day
+veg_leg,"Beans, Peas, Lentils (veg)",US20,0.21,0,0.021,cup eq/day
+veg_exc_sta,Vegetables Excl. Starchy,US20,1.57,0,0.157,cup eq/day
+fruit_tot,Fruit (TOTAL),US20,2,0,0.2,cup eq/day
+fruit_exc_juice,Whole Fruits,US20,1.55,0,0.155,cup eq/day
+fruit_juice,Fruit Juice,US20,0.45,0,0.045,cup eq/day
+gr_whole,Whole Grains,US20,3,0,0.3,ounce eq/day
+gr_refined,Refined Grains,US20,3,0,0.3,ounce eq/day
+dairy_tot,Dairy (TOTAL),US20,3,0,0.3,cup eq/day
+dairy_cow,Dairy,US20,2.99,0,0.299,cup eq/day
+dairy_cow_milk,Dairy milk,US20,1.21,0,0.121,cup eq/day
+dairy_cow_yogurt,Dairy yogurt,US20,0.14,0,0.014,cup eq/day
+dairy_cow_cheese,Dairy cheese,US20,1.64,0,0.164,cup eq/day
+dairy_soy,Dairy Alternatives (fortified soy milk and soy yogurt),US20,0.01,0,0.001,cup eq/day
+pf_tot,Protein Foods (TOTAL),US20,6.36,0,0.636,ounce eq/day
+pf_redm_poul_egg,"Red Meat, Poultry, Eggs (inc. organ meats, processed meats)",US20,3.71,0,0.371,ounce eq/day
+pf_redm,Red Meat,US20,1.21,0,0.121,ounce eq/day
+pf_redm_tot,Red Meat (TOTAL),US20,1.77,0,0.177,ounce eq/day
+pf_pm,Processed Meat,US20,0.72,0,0.072,ounce eq/day
+pf_poultry,Poultry,US20,1.26,0,0.126,ounce eq/day
+pf_poultry_tot,Poultry (TOTAL),US20,1.43,0,0.143,ounce eq/day
+pf_egg,Eggs,US20,0.52,0,0.052,ounce eq/day
+pf_seafood,Seafood,US20,1.14,0,0.114,ounce eq/day
+pf_ns_soy,"Nuts, Seeds, and Soy",US20,0.71,0,0.071,ounce eq/day
+pf_ns,"Nuts, Seeds",US20,0.65,0,0.065,ounce eq/day
+pf_soy,Soy Products,US20,0.07,0,0.007,ounce eq/day
+pf_leg,"Beans, Peas, Lentils",US20,0.86,0,0.086,ounce eq/day
+leg_tot,"Beans, Peas, Lentils, and Soy Products (TOTAL)",US20,0.93,0,0.093,ounce eq/day
+added_sugar,Added Sugars,US20,7.14,0,0.714,tsp/day
+ssb,Sugar Sweetened Beverages,US20,0.59,0,0.059,cup eq/day
+sodium,Sodium,US20,2300,0,230,mg/day
+veg_tot,Vegetables (TOTAL),US25,3,0,0.3,cup eq/day
+veg_dg,Dark-Green Vegetables,US25,0.26,0,0.026,cup eq/day
+veg_ro,Red and Orange Vegetables,US25,0.94,0,0.094,cup eq/day
+veg_sta,Starchy Vegetables,US25,0.86,0,0.086,cup eq/day
+veg_oth,Other Vegetables,US25,0.69,0,0.069,cup eq/day
+veg_leg,"Beans, Peas, Lentils (veg)",US25,0.26,0,0.026,cup eq/day
+veg_exc_sta,Vegetables Excl. Starchy,US25,1.89,0,0.189,cup eq/day
+fruit_tot,Fruit (TOTAL),US25,2,0,0.2,cup eq/day
+fruit_exc_juice,Whole Fruits,US25,1.55,0,0.155,cup eq/day
+fruit_juice,Fruit Juice,US25,0.45,0,0.045,cup eq/day
+gr_whole,Whole Grains,US25,3,0,0.3,ounce eq/day
+gr_refined,Refined Grains,US25,0,0,0,ounce eq/day
+dairy_tot,Dairy (TOTAL),US25,2.34,0,0.234,cup eq/day
+dairy_cow,Dairy,US25,2.32,0,0.232,cup eq/day
+dairy_cow_milk,Dairy milk,US25,0.94,0,0.094,cup eq/day
+dairy_cow_yogurt,Dairy yogurt,US25,0.11,0,0.011,cup eq/day
+dairy_cow_cheese,Dairy cheese,US25,1.28,0,0.128,cup eq/day
+dairy_soy,Dairy Alternatives (fortified soy milk and soy yogurt),US25,0.01,0,0.001,cup eq/day
+pf_tot,Protein Foods (TOTAL),US25,8.15,0,0.815,ounce eq/day
+pf_redm_poul_egg,"Red Meat, Poultry, Eggs (inc. organ meats, processed meats)",US25,4.75,0,0.475,ounce eq/day
+pf_redm,Red Meat,US25,2.26,0,0.226,ounce eq/day
+pf_redm_tot,Red Meat (TOTAL),US25,2.26,0,0.226,ounce eq/day
+pf_pm,Processed Meat,US25,0,0,0,ounce eq/day
+pf_poultry,Poultry,US25,1.83,0,0.183,ounce eq/day
+pf_poultry_tot,Poultry (TOTAL),US25,1.83,0,0.183,ounce eq/day
+pf_egg,Eggs,US25,0.66,0,0.066,ounce eq/day
+pf_seafood,Seafood,US25,1.46,0,0.146,ounce eq/day
+pf_ns_soy,"Nuts, Seeds, and Soy",US25,0.91,0,0.091,ounce eq/day
+pf_ns,"Nuts, Seeds",US25,0.83,0,0.083,ounce eq/day
+pf_soy,Soy Products,US25,0.09,0,0.009,ounce eq/day
+pf_leg,"Beans, Peas, Lentils",US25,1.03,0,0.103,ounce eq/day
+leg_tot,"Beans, Peas, Lentils, and Soy Products (TOTAL)",US25,1.12,0,0.112,ounce eq/day
+added_sugar,Added Sugars,US25,0,0,0,tsp/day
+ssb,Sugar Sweetened Beverages,US25,0,0,0,cup eq/day
+sodium,Sodium,US25,2300,0,230,mg/day
+dairy_soy,Dairy Alternatives (fortified soy milk and soy yogurt),Vegetarian,0,0,0,cup eq/day
+pf_redm,Red Meat,Vegetarian,0,0,0,ounce eq/day
+pf_redm_tot,Red Meat (TOTAL),Vegetarian,0,0,0,ounce eq/day
+pf_pm,Processed Meat,Vegetarian,0,0,0,ounce eq/day
+pf_poultry,Poultry,Vegetarian,0,0,0,ounce eq/day
+pf_poultry_tot,Poultry (TOTAL),Vegetarian,0,0,0,ounce eq/day
+pf_egg,Eggs,Vegetarian,0.43,0,0.043,ounce eq/day
+pf_seafood,Seafood ,Vegetarian,0,0,0,ounce eq/day
+pf_ns,"Nuts, Seeds",Vegetarian,1,0,0.1,ounce eq/day
+pf_soy,Soy Products,Vegetarian,1.14,0,0.114,ounce eq/day
+pf_leg,"Beans, Peas, Lentils",Vegetarian,0.43,0,0.043,cup eq/day
+leg_tot,"Beans, Peas, Lentils (TOTAL)",Vegetarian,2.86,0,0.286,ounce eq/day
+oil,Oils ,Vegetarian,27,0,2.7,grams/day
+added_sugar,Added Sugars,Vegetarian,7.44,0,0.744,tsp/day
+sat_fat,Satuated Fat,Vegetarian,13.89,0,1.389,grams/day
+ssb,Sugar Sweetened Beverages,Vegetarian,0.54,0,0.054,cup eq/day
+sodium,Sodium,Vegetarian,2300,0,230,mg/day
+veg_dg,Dark-Green Vegetables,Vegan,0.21,0,0.021,cup eq/day
+veg_ro,Red and Orange Vegetables,Vegan,0.79,0,0.079,cup eq/day
+veg_sta,Starchy Vegetables,Vegan,0.71,0,0.071,cup eq/day
+veg_oth,Other Vegetables,Vegan,0.57,0,0.057,cup eq/day
+veg_exc_sta,Vegetables Excl. Starchy,Vegan,1.57,0,0.157,cup eq/day
+fruit_tot,Fruit (TOTAL),Vegan,2,0,0.2,cup eq/day
+fruit_exc_juice,Whole Fruits,Vegan,1.54,0,0.154,cup eq/day
+fruit_juice,Fruit Juice,Vegan,0.46,0,0.046,cup eq/day
+gr_whole,Whole Grains ,Vegan,3.5,0,0.35,ounce eq/day
+gr_refined,Refined Grains ,Vegan,3,0,0.3,ounce eq/day
+dairy_tot,Dairy (TOTAL),Vegan,0,0,0,cup eq/day
+dairy_cow,Dairy,Vegan,0,0,0,cup eq/day
+dairy_soy,Dairy Alternatives (fortified soy milk and soy yogurt),Vegan,3,0,0.3,cup eq/day
+pf_redm,Red Meat,Vegan,0,0,0,ounce eq/day
+pf_redm_tot,Red Meat (TOTAL),Vegan,0,0,0,ounce eq/day
+pf_pm,Processed Meat,Vegan,0,0,0,ounce eq/day
+pf_poultry,Poultry,Vegan,0,0,0,ounce eq/day
+pf_poultry_tot,Poultry (TOTAL),Vegan,0,0,0,ounce eq/day
+pf_egg,Eggs,Vegan,0,0,0,ounce eq/day
+pf_seafood,Seafood ,Vegan,0,0,0,ounce eq/day
+pf_ns,"Nuts, Seeds",Vegan,1.14,0,0.114,ounce eq/day
+pf_soy,Soy Products,Vegan,1.29,0,0.129,ounce eq/day
+pf_leg,"Beans, Peas, Lentils",Vegan,0.46,0,0.046,cup eq/day
+leg_tot,"Beans, Peas, Lentils (TOTAL)",Vegan,3.13,0,0.313,ounce eq/day
+oil,Oils ,Vegan,27,0,2.7,grams/day
+added_sugar,Added Sugars,Vegan,7.44,0,0.744,tsp/day
+sat_fat,Satuated Fat,Vegan,13.89,0,1.389,grams/day
+ssb,Sugar Sweetened Beverages,Vegan,0.54,0,0.054,cup eq/day
+sodium,Sodium,Vegan,2300,0,230,mg/day
+veg_dg,Dark-Green Vegetables,DGAplus,0.21,0,0.021,cup eq/day
+veg_ro,Red and Orange Vegetables,DGAplus,0.79,0,0.079,cup eq/day
+veg_sta,Starchy Vegetables,DGAplus,0.71,0,0.071,cup eq/day
+veg_oth,Other Vegetables,DGAplus,0.57,0,0.057,cup eq/day
+veg_exc_sta,Vegetables Excl. Starchy,DGAplus,1.57,0,0.157,cup eq/day
+fruit_tot,Fruit (TOTAL),DGAplus,2,0,0.2,cup eq/day
+fruit_exc_juice,Whole Fruits,DGAplus,2,0,0.2,cup eq/day
+fruit_juice,Fruit Juice,DGAplus,0,0,0,cup eq/day
+gr_whole,Whole Grains ,DGAplus,3.5,0,0.35,ounce eq/day
+gr_refined,Refined Grains ,DGAplus,2.5,0,0.25,ounce eq/day
+dairy_tot,Dairy (TOTAL),DGAplus,3,0,0.3,cup eq/day
+dairy_cow,Dairy,DGAplus,3,0,0.3,cup eq/day
+dairy_soy,Dairy Alternatives (fortified soy milk and soy yogurt),DGAplus,0,0,0,cup eq/day
+pf_redm,Red Meat,DGAplus,0.5,0,0.05,ounce eq/day
+pf_redm_tot,Red Meat (TOTAL),DGAplus,0.5,0,0.05,ounce eq/day
+pf_pm,Processed Meat,DGAplus,0,0,0,ounce eq/day
+pf_poultry,Poultry,DGAplus,1,0,0.1,ounce eq/day
+pf_poultry_tot,Poultry (TOTAL),DGAplus,1,0,0.1,ounce eq/day
+pf_egg,Eggs,DGAplus,0.25,0,0.025,ounce eq/day
+pf_seafood,Seafood ,DGAplus,1,0,0.1,ounce eq/day
+pf_ns,"Nuts, Seeds",DGAplus,1,0,0.1,ounce eq/day
+leg_tot,"Beans, Peas, Lentils (TOTAL)",DGAplus,1.75,0,0.175,ounce eq/day
+oil,Oils ,DGAplus,27,0,0.27,grams/day
+added_sugar,Added Sugars,DGAplus,7.44,0,0.744,tsp/day
+sat_fat,Satuated Fat,DGAplus,13.89,0,1.389,grams/day
+ssb,Sugar Sweetened Beverages,DGAplus,0,0,0,cup eq/day
+sodium,Sodium,DGAplus,1500,0,150,mg/day

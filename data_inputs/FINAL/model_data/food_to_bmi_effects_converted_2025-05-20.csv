@@ -1,0 +1,42 @@
+food_group,effect_normal_mean,effect_normal_mean_se,effect_overweight_mean,effect_overweight_mean_se,effect_unit
+added_sugar,0.021,0.0053571420000000005,0.0483,0.009642855600000002,1 tsp/day
+dairy_tot,0,0,0,0,NA
+dairy_cow,0,0,0,0,NA
+dairy_soy,0,0,0,0,NA
+fruit_tot,-0.06,0.010204269,-0.11,0.025510673,1 cup/day
+gr_refined,0.05,0.017857143,0.07,0.020408163,1 oz eq/day
+gr_whole,-0.05,0.010204269,-0.08,0.010204269,1 oz eq/day
+oil,0,0,0,0,NA
+pf_egg,0,0,0,0,NA
+pf_leg,0,0,0,0,NA
+pf_ns,-0.1,0.028061224,-0.14,0.056122449,1 oz eq/day
+pf_pm,0.065,0.0153064035,0.08,0.0127553365,1 oz eq/day
+pf_poultry,0,0,0,0,NA
+pf_poultry_tot,0,0,0,0,NA
+pf_redm,0.037142857142857144,0.0021866291428571426,0.06571428571428571,0.013119774571428572,1 oz eq/day
+pf_redm_tot,0.037142857142857144,0.0021866291428571426,0.06571428571428571,0.013119774571428572,1 oz eq/day
+pf_seafood,0,0,0,0,NA
+pf_soy,0,0,0,0,NA
+sat_fat,0,0,0,0,NA
+veg_dg,0,0,0,0,NA
+veg_leg,0,0,0,0,NA
+veg_oth,0,0,0,0,NA
+veg_ro,0,0,0,0,NA
+veg_sta,0,0,0,0,NA
+veg_exc_sta,-0.03,0.007653202,-0.06,0.017857471,1 cup/day
+leg_tot,-0.11931818181818181,0.03043887159090909,-0.23863636363636362,0.07102403238636364,1 oz eq/day
+fruit_exc_juice,-0.06,0.010204269,-0.11,0.025510673,1 cup/day
+fruit_juice,0,0,0,0,NA
+ssb,0.09,0.022959184,0.23,0.045918367,1 cup/day
+sea_omega3_fa,0,0,0,0,NA
+sodium,0,0,0,0,NA
+fiber,0,0,0,0,NA
+pf_animal,0,0,0,0,NA
+pf_plant,0,0,0,0,NA
+pufa_rep_carb,0,0,0,0,NA
+pufa_rep_sfa,0,0,0,0,NA
+pufa_rep_carbsfa,0,0,0,0,NA
+babyfood,0,0,0,0,NA
+coffee_tea,0,0,0,0,NA
+other,0,0,0,0,NA
+water,0,0,0,0,NA
