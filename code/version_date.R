@@ -31,7 +31,7 @@
 # --- Set the version date here (ISO 8601, YYYY-MM-DD) ----------------
 # Fixed date for reproducibility. Change this one line to cut a new
 # version, or replace with Sys.Date() to always use today.
-version_date <- as.Date("2026-07-22")
+version_date <- as.Date("2026-10-10")
 
 # --- Helper: build a dated file path ---------------------------------
 # Appends "_<version_date>" (always ISO 8601) plus the extension to a

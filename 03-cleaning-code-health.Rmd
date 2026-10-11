@@ -560,7 +560,7 @@ Import the NHANES diet intake dataset and clean up.
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
-nhanes <- read_csv("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1518_summary_allfoods_adj_bysub_ncimethod_2025-03-10.csv")
+nhanes <- read_csv("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1723_summary_allfoods_adj_bysub_ncimethod_2025-03-10.csv")
 
 nhanes1 <- nhanes %>% 
   rename("Foodgroup" = "food",
@@ -599,7 +599,7 @@ nhanes4 <- nhanes3 %>%
   relocate(sigma_u_wgt, .after = "SE_Intake")
 
 # export
-write_csv(nhanes4, dated("data_inputs/FINAL/cleaned_raw_data/nhanes1518_agesexrace"))
+write_csv(nhanes4, dated("data_inputs/FINAL/cleaned_raw_data/nhanes1723_agesexrace"))
 
 ```
 
@@ -1431,7 +1431,7 @@ rm(list=setdiff(ls(), c("version_date", "dated")))
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 # import
-nhanes.dat <- read_csv(dated("data_inputs/FINAL/cleaned_raw_data/nhanes1518_agesexrace"))
+nhanes.dat <- read_csv(dated("data_inputs/FINAL/cleaned_raw_data/nhanes1723_agesexrace"))
 
 # rename var
 nhanes.dat1 <- nhanes.dat %>% rename(diet = Foodgroup,
@@ -1526,7 +1526,7 @@ merged1 <- merged %>%
 merged1 %>% select(subgroup, overweight_rate) %>% head()
 
 # export file
-write_csv(merged1, dated("data_inputs/FINAL/model_data/nhanes1518_agesexrace_merged"))
+write_csv(merged1, dated("data_inputs/FINAL/model_data/nhanes1723_agesexrace_merged"))
 
 ```
 
@@ -1544,7 +1544,7 @@ rm(list=setdiff(ls(), c("version_date", "dated")))
 
 # IMPORT NHANES DATA
 
-nhanes <- read_csv(dated("data_inputs/FINAL/model_data/nhanes1518_agesexrace_merged"))
+nhanes <- read_csv(dated("data_inputs/FINAL/model_data/nhanes1723_agesexrace_merged"))
 
 # update variable names
 

@@ -49,7 +49,7 @@ Import all of the "day 1" datasets first.
 ```{r}
 
 # import
-day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean.rds")
+day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
 
 # only select needed variables
 day1_sub <- day1 %>% select(SEQN, DRDINT, DR1DRSTZ, DR1ILINE, DR1IFDCD, 
@@ -63,7 +63,7 @@ day1_sub <- day1 %>% select(SEQN, DRDINT, DR1DRSTZ, DR1ILINE, DR1IFDCD,
          reliable = DR1DRSTZ)
 
 # ssb
-ssb_1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb.rds")
+ssb_1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb_1723.rds")
 
 # merge food and ssb
 day1_sub1 <- left_join(day1_sub, ssb_1, by = c("seqn" = "SEQN",
@@ -79,7 +79,7 @@ Then import all of "day 2" datasets.
 ```{r}
 
 # import
-day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean.rds")
+day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
 
 # only select needed variables
 day2_sub <- day2 %>% select(SEQN, DRDINT, DR2DRSTZ, DR2ILINE, DR2IFDCD, 
@@ -93,7 +93,7 @@ day2_sub <- day2 %>% select(SEQN, DRDINT, DR2DRSTZ, DR2ILINE, DR2IFDCD,
          reliable = DR2DRSTZ)
 
 # ssb
-ssb_2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb.rds")
+ssb_2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb_1723.rds")
 
 # merge food and ssb
 day2_sub1 <- left_join(day2_sub, ssb_2, by = c("seqn" = "SEQN",
@@ -417,7 +417,7 @@ Lastly, save a copy of this temporary dataset in case we need it for debugging l
 
 ```{r}
 
-saveRDS(both_days11, "data_inputs/IMPACT_FACTORS/temp_data/both_days11_cost.rds")
+saveRDS(both_days11, "data_inputs/IMPACT_FACTORS/temp_data/both_days11_cost_1723.rds")
 
 ```
 
@@ -436,7 +436,7 @@ Now, we will calculate the average food cost per 1 gram for each FNDDS food code
 ```{r}
 
 # keep this commented out unless you are starting the script from here
-# both_days11 <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/both_days11_cost.rds")
+# both_days11 <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/both_days11_cost_1723.rds")
 # source("code/version_date.R")
 
 ```
@@ -458,7 +458,7 @@ Then, import the food-level consumed, inedible, and wasted amounts that was calc
 ```{r}
 
 # import 
-fndds_flw <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/fndds_flw.rds") %>% 
+fndds_flw <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/fndds_flw_1723.rds") %>% 
   mutate(foodcode = as.character(foodcode))
 
 # join
@@ -725,6 +725,6 @@ Export dataset to the temporary folder, so it can be used to calculate the impac
 
 ```{r}
 
-write_rds(price_wide_comb3, "data_inputs/IMPACT_FACTORS/temp_data/price_input_dat.rds")
+write_rds(price_wide_comb3, "data_inputs/IMPACT_FACTORS/temp_data/price_input_dat_1723.rds")
 
 ```

@@ -67,7 +67,7 @@ meat_day1_3 <- meat_day1_2 %>%
   select(SEQN, DR1ILINE, total_redmeat_new, total_poultry_new)
 
 # export
-write_rds(meat_day1_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1.rds")
+write_rds(meat_day1_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1_1723.rds")
 
 # DAY 2 -----
 
@@ -88,7 +88,7 @@ meat_day2_3 <- meat_day2_2 %>%
   select(SEQN, DR2ILINE, total_redmeat_new, total_poultry_new)
 
 # export
-write_rds(meat_day2_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2.rds")
+write_rds(meat_day2_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2_1723.rds")
 
 ```
 
@@ -164,8 +164,8 @@ foods_day2 <- rbind(foods_i2, foods_j2) %>%
          dayrec = 2) 
 
 # read in meat data
-meat_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1.rds")
-meat_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2.rds")
+meat_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1_1723.rds")
+meat_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2_1723.rds")
 
 foods_day1_ <- left_join(foods_day1, meat_day1, by = c("SEQN", "DR1ILINE"))
 foods_day2_ <- left_join(foods_day2, meat_day2, by = c("SEQN", "DR2ILINE"))
@@ -296,8 +296,8 @@ foods_day2_2 %>%
 
 
 # export foods day 1 and day 2 for later use
-write_rds(foods_day1_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean.rds")
-write_rds(foods_day2_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean.rds")
+write_rds(foods_day1_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
+write_rds(foods_day2_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
 ```
 
 #### Step 3: Clean the food and nutrient intake (summary) datasets {.unnumbered}
@@ -711,7 +711,7 @@ nhanes_final1 %>% select(SEQN, wtnew, SDMVPSU, SDMVSTRA, inAnalysis) # looks goo
 
 # export
 write_rds(nhanes_final1,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_clean.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_clean.rds")
 
 ```
 
@@ -818,8 +818,8 @@ Import the NHANES individual-level food data (cleaned in [Chapter 2.2](cleaning-
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 # read in nhanes individual food data
-foods_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean.rds")
-foods_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean.rds")
+foods_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
+foods_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
 
 # split up by NHANES cycle x Day of intake
 nhanes1516_day1 <- foods_day1 %>% filter(nhanes_cycle == "2015-2016")
@@ -889,8 +889,8 @@ Export the datasets to use in the next section.
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
-write_rds(day1_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb.rds")
-write_rds(day2_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb.rds")
+write_rds(day1_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb_1723.rds")
+write_rds(day2_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb_1723.rds")
 
 ```
 
@@ -969,7 +969,7 @@ Now merge with the main NHANES intake dataset.
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 # read in clean nhanes dataset
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_clean.rds")
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_clean.rds")
 
 # merge
 nhanes_1 <- left_join(nhanes, ssb_bothdays_1, by = "SEQN")
@@ -991,7 +991,7 @@ Export.
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 write_rds(nhanes_1,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_incl_ssb_clean.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_incl_ssb_clean.rds")
 
 ```
 
@@ -1027,7 +1027,7 @@ library(survey)
 
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_incl_ssb_clean.rds") %>% 
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_incl_ssb_clean.rds") %>% 
   ungroup() # get rid of rowwise formatting
 
 nhanes1 <- nhanes %>% 
@@ -1165,10 +1165,10 @@ nhanes_adj %>% select(pf_poultry_tot, pf_poultry_tot_adj) %>% head()
 
 # export data
 write_rds(nhanes_adj,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_long.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_long.rds")
 
 write_csv(nhanes_adj,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_long.csv")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_long.csv")
 
 ```
 
@@ -1294,10 +1294,10 @@ Export.
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 write_rds(nhanes_adj_wide2,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_wide.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_wide.rds")
 
 write_csv(nhanes_adj_wide2,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_wide.csv",
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_wide.csv",
           na = "")
 ```
 
@@ -1335,7 +1335,7 @@ library(tidyverse)
 library(fastDummies)
 
 # Import data
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_long.rds")
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_long.rds")
 
 # only select certain variables
 nhanes1 <- nhanes %>% 
@@ -1399,7 +1399,7 @@ Export to Box.
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 write_csv(nhanes5,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes_incl_ssb_adj_clean_long.csv",
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_incl_ssb_adj_clean_long.csv",
           na = "")
 
 ```
@@ -1409,7 +1409,7 @@ Export to the standard_deviations folder.
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 write_csv(nhanes5,
-          "data_inputs/DIET/standard_deviations/DATA/in/nhanes_incl_ssb_adj_clean_long.csv",
+          "data_inputs/DIET/standard_deviations/DATA/in/nhanes1723_incl_ssb_adj_clean_long.csv",
           na = "")
 
 ```
@@ -1542,7 +1542,7 @@ intake2 <- intake1 %>%
 # for subgroup 0 only
 # leave commented out
 # write_csv(intake2, 
-#           dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1518_summary_allfoods_adj_bysub_ncimethod"))
+#           dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1723_summary_allfoods_adj_bysub_ncimethod"))
 
 ```
 
@@ -1578,7 +1578,7 @@ Export.
 ```{r, results='hide', warning=FALSE, message=FALSE}
 
 write_csv(intake4, 
-          dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1518_summary_allfoods_adj_bysub_ncimethod"))
+          dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1723_summary_allfoods_adj_bysub_ncimethod"))
 
 
 ```

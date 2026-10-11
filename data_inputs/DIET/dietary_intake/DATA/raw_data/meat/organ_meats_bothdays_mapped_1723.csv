@@ -1,0 +1,25 @@
+DESCRIPTION,old,new
+"Beef liver, braised",pf_organ,pf_redm
+"Beef liver, fried",pf_organ,pf_redm
+"Chicken liver, braised",pf_organ,pf_poultry
+"Chicken liver, fried",pf_organ,pf_poultry
+"Chitterlings, cooked",pf_organ,pf_redm
+Cornmeal dressing with chicken or turkey and vegetables,pf_organ,pf_poultry
+Dirty rice,pf_organ,pf_poultry
+Dressing with chicken or turkey and vegetables,pf_organ,pf_poultry
+"Gizzard, cooked",pf_organ,pf_poultry
+"Gravy, giblet",pf_organ,pf_poultry
+"Heart, cooked",pf_organ,pf_redm
+"Hog maws, cooked",pf_organ,pf_redm
+Liver dumpling,pf_organ,pf_redm
+"Liver paste or pate, chicken",pf_organ,pf_poultry
+"Liver, beef or calves, and onions",pf_organ,pf_redm
+"Livers, chicken, chopped, with eggs and onion",pf_organ,pf_poultry
+"Menudo soup, canned, prepared with water or ready-to-serve",pf_organ,pf_redm
+"Menudo soup, home recipe",pf_organ,pf_redm
+Pepperpot soup,pf_organ,pf_redm
+"Stewed tripe, with potatoes, Puerto Rican style",pf_organ,pf_redm
+"Tongue, cooked",pf_organ,pf_redm
+"Tongue, smoked, cured, or pickled, cooked",pf_organ,pf_redm
+"Tripe, cooked",pf_organ,pf_redm
+"Sweetbreads, cooked",pf_organ,pf_redm

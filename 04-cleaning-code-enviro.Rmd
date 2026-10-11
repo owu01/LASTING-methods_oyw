@@ -49,7 +49,7 @@ Import all of the "day 1" datasets first.
 ```{r}
 
 # import
-day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean.rds")
+day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
 
 # only select needed variables
 day1_sub <- day1 %>% select(SEQN, DRDINT, DR1DRSTZ, DR1ILINE, DR1IFDCD, 
@@ -63,7 +63,7 @@ day1_sub <- day1 %>% select(SEQN, DRDINT, DR1DRSTZ, DR1ILINE, DR1IFDCD,
          reliable = DR1DRSTZ)
 
 # ssb
-ssb_1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb.rds")
+ssb_1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb_1723.rds")
 
 # merge food and ssb
 day1_sub1 <- left_join(day1_sub, ssb_1, by = c("seqn" = "SEQN",
@@ -79,7 +79,7 @@ Then import all of "day 2" datasets.
 ```{r}
 
 # import
-day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean.rds")
+day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
 
 # only select needed variables
 day2_sub <- day2 %>% select(SEQN, DRDINT, DR2DRSTZ, DR2ILINE, DR2IFDCD, 
@@ -93,7 +93,7 @@ day2_sub <- day2 %>% select(SEQN, DRDINT, DR2DRSTZ, DR2ILINE, DR2IFDCD,
          reliable = DR2DRSTZ)
 
 # ssb
-ssb_2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb.rds")
+ssb_2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb_1723.rds")
 
 # merge food and ssb
 day2_sub1 <- left_join(day2_sub, ssb_2, by = c("seqn" = "SEQN",
@@ -389,7 +389,7 @@ fndds_flw <- both_days11 %>%
   arrange(seqn, dayrec, line)
 
 # export to use in next section
-saveRDS(fndds_flw, "data_inputs/IMPACT_FACTORS/temp_data/fndds_flw.rds")
+saveRDS(fndds_flw, "data_inputs/IMPACT_FACTORS/temp_data/fndds_flw_1723.rds")
 
 ```
 
@@ -987,8 +987,8 @@ Export datasets to the temporary folder, so they can be used to calculate the im
 
 ```{r}
 
-saveRDS(both_days15, "data_inputs/IMPACT_FACTORS/temp_data/both_days15_env.rds")
-saveRDS(enviro_wide7, "data_inputs/IMPACT_FACTORS/temp_data/enviro_input_dat.rds")
+saveRDS(both_days15, "data_inputs/IMPACT_FACTORS/temp_data/both_days15_env_1723.rds")
+saveRDS(enviro_wide7, "data_inputs/IMPACT_FACTORS/temp_data/enviro_input_dat_1723.rds")
 
 ```
 

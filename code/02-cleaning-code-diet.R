@@ -34,6 +34,9 @@ knitr::opts_chunk$set(echo = TRUE,
 #' 
 ## ----message=FALSE, warning=FALSE, results='hide'-------
 
+# OW EDIT - SECTION BEGIN
+# 10/10/2026 - New inputs for processed meat disaggregation that uses NHANES 2017-2023 data. FPED 2021-2023 not available yet, so used FPED 2017-2020 for both cycles
+
 library(tidyverse)
 library(haven)
 
@@ -44,7 +47,7 @@ meat_day1 <- read_sas("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1
 meat_day2 <- read_sas("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2.sas7bdat")
 
 # read in organ mapping
-new_organ <- read_csv("data_inputs/DIET/dietary_intake/DATA/raw_data/meat/organ_meats_bothdays_mapped_121323.csv")
+new_organ <- read_csv("data_inputs/DIET/dietary_intake/DATA/raw_data/meat/organ_meats_bothdays_mapped_1723.csv")   #Edited 10/10/26 to include sweetbreads,cooked in pf_redm
 
 # DAY 1 -----
 
@@ -67,7 +70,7 @@ meat_day1_3 <- meat_day1_2 %>%
   select(SEQN, DR1ILINE, total_redmeat_new, total_poultry_new)
 
 # export
-write_rds(meat_day1_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1.rds")
+write_rds(meat_day1_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1_1723.rds")
 
 # DAY 2 -----
 
@@ -88,8 +91,17 @@ meat_day2_3 <- meat_day2_2 %>%
   select(SEQN, DR2ILINE, total_redmeat_new, total_poultry_new)
 
 # export
-write_rds(meat_day2_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2.rds")
+write_rds(meat_day2_3, "data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2_1723.rds")
 
+# To list organ-meat foods that are not yet in the mapping file:
+
+meat_day1_1 %>% filter(DR1I_PF_ORGAN > 0) %>%
+  anti_join(new_organ, by = "DESCRIPTION") %>% distinct(DESCRIPTION)
+
+meat_day2_1 %>% filter(DR2I_PF_ORGAN > 0) %>%
+  anti_join(new_organ, by = c("DESCRIPTION2" = "DESCRIPTION")) %>% distinct(DESCRIPTION2)
+
+#OW EDIT SECTION END
 
 #' 
 #' ## Clean Raw NHANES Data {#id}
@@ -110,82 +122,271 @@ library(psych)
 library(haven)
 library(readxl)
 
-
 #' 
 #' #### Step 2: Clean individual-level food intake datasets {.unnumbered}
 #' 
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
-# 2015-2016 diet data (i)
+# OW Edit - Section Begin
+
+#' NHANES 2017-March 2020 pre-pandemic (P) and August 2021-August 2023 (L).
+#' P cycle: USDA's FPED individual-food files for that cycle.
+#' L cycle: no FPED release yet, so FPED 2017-2018 values per 100 g are looked
+#' up by food code and multiplied by grams eaten.
+#'
+## ----results='hide', warning=FALSE, message=FALSE-------
+
+raw <- "data_inputs/DIET/dietary_intake/DATA/raw_data/"
+
+# Helper: compare column names between two data frames before binding them
+check_names <- function(a, b) {
+  cat("In first but not second:\n");  print(setdiff(names(a), names(b)))
+  cat("In second but not first:\n");  print(setdiff(names(b), names(a)))
+}
+
+# Person-level and day-level columns not needed at food level.
+# Step 3 takes demographics, design variables and weights from DEMO/total files.
+drop_vars <- c("RIAGENDR", "RIDAGEYR", "RIDRETH3", "SDMVPSU", "SDMVSTRA", "INDFMPIR",
+               "WTDRD1PP", "WTDR2DPP", "WTDRD1", "WTDR2D", "DR1TNUMF", "DR2TNUMF")
+
+# Join FPED food-level data to NHANES food-level nutrients.
+# Matches on person (SEQN) and food line only; nutrient columns that are
+# also in the FPED file are taken from the FPED file.
+join_foods <- function(whole, nutrients, day, cycle) {
+  line <- paste0("DR", day, "ILINE")
+  nutr_only <- setdiff(names(nutrients), names(whole))
+  left_join(whole,
+            nutrients %>% select(SEQN, all_of(line), all_of(nutr_only)),
+            by = c("SEQN", line)) %>%
+    select(-any_of(drop_vars)) %>%
+    mutate(nhanes_cycle = cycle)
+}
+
+
+# ---- 2017-March 2020 pre-pandemic (P) ----------------------------------------
 
 # foods day 1
-foods_i1_nutrients <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr1iff_i.sas7bdat")
-
-foods_i1_whole <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr1iff_1516.sas7bdat")
-
-# join
-foods_i1 <- left_join(foods_i1_whole, foods_i1_nutrients) %>% mutate(nhanes_cycle = "2015-2016")
+foods_p1_nutrients <- read_xpt(paste0(raw, "P_DR1IFF.xpt"))
+foods_p1_whole     <- read_sas(paste0(raw, "fped_dr1iff_1720.sas7bdat"))   # TODO your P day-1 FPED file name
+foods_p1 <- join_foods(foods_p1_whole, foods_p1_nutrients, day = 1, cycle = "2017-2020")
 
 # foods day 2
-foods_i2_nutrients <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr2iff_i.sas7bdat")
+foods_p2_nutrients <- read_xpt(paste0(raw, "P_DR2IFF.xpt"))
+foods_p2_whole     <- read_sas(paste0(raw, "fped_dr2iff_1720.sas7bdat"))   # TODO your P day-2 FPED file name
+foods_p2 <- join_foods(foods_p2_whole, foods_p2_nutrients, day = 2, cycle = "2017-2020")
 
-foods_i2_whole <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr2iff_1516.sas7bdat")
 
-# join
-foods_i2 <- left_join(foods_i2_whole, foods_i2_nutrients) %>% mutate(nhanes_cycle = "2015-2016")
+# ---- August 2021-August 2023 (L) ----------------------------------------------
 
-# 2017-2018 diet data (j)
+# FPED 2017-2020 values per 100 g, one row per food code
+fped_100g <- read_sas(paste0(raw, "fped_1720.sas7bdat"))
+fped_comp <- setdiff(names(fped_100g), c("FOODCODE", "DESCRIPTION"))   # FPED components
+
+# Optional: stand-in 2017-2020 codes for 2021-2023 codes that FPED 2017-2018
+# does not cover. CSV with two columns: new_code, proxy_code.
+# Until the file exists, those foods keep NA FPED values.
+proxy_file <- paste0(raw, "fped_proxy_codes_2123.csv")   
+proxy <- if (file.exists(proxy_file)) {
+  read_csv(proxy_file, show_col_types = FALSE)
+} else {
+  tibble(new_code = numeric(), proxy_code = numeric())
+}
+
+# Turn NHANES food lines into FPED amounts: value per 100 g x grams / 100
+build_fped_iff <- function(iff, day) {
+  line  <- paste0("DR", day, "ILINE")
+  code  <- paste0("DR", day, "IFDCD")
+  grams <- paste0("DR", day, "IGRMS")
+  iff %>%
+    select(SEQN, all_of(c(line, code, grams))) %>%
+    # use the proxy code for the FPED lookup where one is given
+    mutate(lookup_code = coalesce(proxy$proxy_code[match(.data[[code]], proxy$new_code)],
+                                  .data[[code]])) %>%
+    left_join(fped_100g, by = c("lookup_code" = "FOODCODE")) %>%
+    select(-lookup_code) %>%
+    mutate(across(all_of(fped_comp), ~ .x * .data[[grams]] / 100)) %>%
+    rename_with(~ paste0("DR", day, "I_", .x), all_of(fped_comp))
+}
 
 # foods day 1
-foods_j1_nutrients <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr1iff_j.sas7bdat")
-
-foods_j1_whole <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr1iff_1718.sas7bdat")
-
-#join
-foods_j1 <- left_join(foods_j1_whole, foods_j1_nutrients) %>% mutate(nhanes_cycle = "2017-2018")
+foods_l1_nutrients <- read_xpt(paste0(raw, "DR1IFF_L.xpt"))
+foods_l1_whole     <- build_fped_iff(foods_l1_nutrients, day = 1)
+foods_l1 <- join_foods(foods_l1_whole, foods_l1_nutrients, day = 1, cycle = "2021-2023")
 
 # foods day 2
-foods_j2_nutrients <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr2iff_j.sas7bdat")
+foods_l2_nutrients <- read_xpt(paste0(raw, "DR2IFF_L.xpt"))
+foods_l2_whole     <- build_fped_iff(foods_l2_nutrients, day = 2)
+foods_l2 <- join_foods(foods_l2_whole, foods_l2_nutrients, day = 2, cycle = "2021-2023")
 
-foods_j2_whole <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr2iff_1718.sas7bdat")
 
-# join
-foods_j2 <- left_join(foods_j2_whole, foods_j2_nutrients) %>% mutate(nhanes_cycle = "2017-2018")
+# ---- Checks before binding ----------------------------------------------------
+# NOTE: This is only needed because we don't have 2021-2023 FPED
 
-# create day 1 and 2 datasets
-foods_day1 <- rbind(foods_i1, foods_j1) %>% 
+# 1. Columns should match: expect character(0) under both headings
+check_names(foods_p1, foods_l1)
+check_names(foods_p2, foods_l2)
+
+# 2. Is the 2021-2023 file complete? Compare people with food records against
+#    people with a reliable day-1 recall in the total file.
+n_distinct(foods_l1_nutrients$SEQN)
+read_xpt(paste0(raw, "DR1TOT_L.xpt")) %>% filter(DR1DRSTZ == 1) %>% nrow()
+
+# 3. 2021-2023 food codes with no FPED match (need a proxy code)
+unmatched_l <- bind_rows(
+  foods_l1 %>% filter(is.na(DR1I_F_TOTAL)) %>% distinct(food_code = DR1IFDCD),
+  foods_l2 %>% filter(is.na(DR2I_F_TOTAL)) %>% distinct(food_code = DR2IFDCD)) %>%
+  distinct()
+unmatched_l   # look these up in the FNDDS 2021-2023 descriptions to choose proxies
+
+# 4. Nutrients and food source filled in
+sum(is.na(foods_l1$DR1ISODI))                # a few NA (e.g. breast milk) is normal
+table(foods_l1$DR1FS, useNA = "always")
+
+# 5. Run the corrected unmatched-code check
+unmatched_l <- tibble(food_code = unique(c(foods_l1_nutrients$DR1IFDCD,
+                                           foods_l2_nutrients$DR2IFDCD))) %>%
+  filter(!food_code %in% fped_100g$FOODCODE)
+nrow(unmatched_l)
+
+# 6. Confirm sodium NAs and see how much the unmatched codes matter:
+  # which foods have missing sodium? (expect mostly 11000000, breast milk)
+  foods_l1 %>% filter(is.na(DR1ISODI)) %>% count(DR1IFDCD, sort = TRUE)
+  
+  # how many food lines use the 29 unmatched codes, out of all lines?
+  sum(foods_l1_nutrients$DR1IFDCD %in% unmatched_l$food_code); nrow(foods_l1_nutrients)
+
+# 7. Choosing proxies to update fped_poxy_codes_2123.csv file
+  fcd_l <- read_xpt(paste0(raw, "DRXFCD_L.xpt"))
+  unmatched_l %>%
+    left_join(fcd_l, by = c("food_code" = "DRXFDCD")) %>%
+    left_join(bind_rows(
+      foods_l1_nutrients %>% count(food_code = DR1IFDCD, name = "n_day1"),
+      foods_l2_nutrients %>% count(food_code = DR2IFDCD, name = "n_day2")) %>%
+        group_by(food_code) %>% summarise(across(everything(), ~ sum(.x, na.rm = TRUE))),
+      by = "food_code") %>%
+    print(n = Inf)
+  
+  # NOTABLE PROXIES WITH JUDGEMENT CALLS:
+  # Almond-milk yogurt → sweetened almond milk. The only non-dairy yogurt in FPED 2017–2018 is soy yogurt, which would wrongly add soy and dairy servings.
+  # Oat milk → rice milk. It’s the closest grain-based plant milk.
+  # Pork stew with pasta → beef, noodles and vegetables with gravy. The pork-and-noodle codes say “ham or pork”, which could be counted as processed meat. The beef code keeps it as unprocessed red meat, the same category as pork.
+  # Lentil soup with meat → bean and ham soup. This adds a small amount of processed meat. If you’d rather not assume ham, use plain lentil soup (41603010) instead.
+  # Potato soup with meat → potato chowder. It may contain less meat than the original.
+  # Hard seltzer → vodka and soda; Moscow mule → whiskey and ginger ale; michelada → beer. These matter only for added sugar.
+  # Ramen bowls → the closest noodle soup by protein: beef or meat → pho; chicken → chicken noodle soup; fish → noodle soup with fish ball and shrimp; vegetarian → Asian-style vegetable noodle soup.
+  
+# 8. Check, after updating proxies and running Step 2 again, that only breast milk is left without FPED values
+  foods_l1 %>% filter(is.na(DR1I_F_TOTAL)) %>% count(DR1IFDCD)   # expect only 11000000
+  foods_l2 %>% filter(is.na(DR2I_F_TOTAL)) %>% count(DR2IFDCD)
+
+# ---- Combine cycles -----------------------------------------------------------
+
+foods_day1 <- bind_rows(foods_p1, foods_l1) %>%
   mutate(foodsource = ifelse(DR1FS == 1, "Grocery", "Other"), # create food source variable
-         foodsource = replace_na(foodsource, "Other"), # replace NAs with "other" (applies to tap water and breast milk)
-         dayrec = 1) # day1
+         foodsource = replace_na(foodsource, "Other"),        # NAs to "Other" (tap water, breast milk)
+         dayrec = 1)
 
-foods_day2 <- rbind(foods_i2, foods_j2) %>% 
-  mutate(foodsource = ifelse(DR2FS == 1, "Grocery", "Other"), # create food source variable
-         foodsource = replace_na(foodsource, "Other"), # replace NAs with "other" (applies to tap water and breast milk)
-         dayrec = 2) 
+foods_day2 <- bind_rows(foods_p2, foods_l2) %>%
+  mutate(foodsource = ifelse(DR2FS == 1, "Grocery", "Other"),
+         foodsource = replace_na(foodsource, "Other"),
+         dayrec = 2)
 
-# read in meat data
-meat_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1.rds")
-meat_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2.rds")
+# read in meat data (processed-meat SAS program, run on both cycles)
+meat_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day1_1723.rds")
+meat_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/meat_day2_1723.rds")
 
 foods_day1_ <- left_join(foods_day1, meat_day1, by = c("SEQN", "DR1ILINE"))
 foods_day2_ <- left_join(foods_day2, meat_day2, by = c("SEQN", "DR2ILINE"))
 
-# check
-foods_day1_ %>% select(SEQN, DR1ILINE, DR1I_PF_MPS_TOTAL, DR1I_PF_SEAFD_HI, DR1I_PF_SEAFD_LOW, total_redmeat_new, total_poultry_new)
+# Fill meat totals for lines the SAS program could not process
+# (2021-2023 foods that use a stand-in FPED code). Cured meat is counted as
+# red meat; none of the stand-in foods contain cured poultry.
+foods_day1_ <- foods_day1_ %>%
+  mutate(fill = is.na(total_redmeat_new) & !is.na(DR1I_PF_MPS_TOTAL),
+         total_redmeat_new = ifelse(fill, DR1I_PF_MEAT + DR1I_PF_CUREDMEAT + DR1I_PF_ORGAN,
+                                    total_redmeat_new),
+         total_poultry_new = ifelse(fill, DR1I_PF_POULT, total_poultry_new)) %>%
+  select(-fill)
 
-foods_day1_ %>% filter(DR1I_PF_ORGAN > 0) %>% select(SEQN, DR1ILINE, DR1I_PF_MPS_TOTAL, DR1I_PF_SEAFD_HI, DR1I_PF_SEAFD_LOW, total_redmeat_new, total_poultry_new)
+foods_day2_ <- foods_day2_ %>%
+  mutate(fill = is.na(total_redmeat_new) & !is.na(DR2I_PF_MPS_TOTAL),
+         total_redmeat_new = ifelse(fill, DR2I_PF_MEAT + DR2I_PF_CUREDMEAT + DR2I_PF_ORGAN,
+                                    total_redmeat_new),
+         total_poultry_new = ifelse(fill, DR2I_PF_POULT, total_poultry_new)) %>%
+  select(-fill)
 
-# Calculate amount of intake for each dietary factor
-# for day 1 and day 2
-# by SEQN and foodsource
+# Re-apply the SAS red meat / poultry split to each line's own FPED meat amount.
+# Fixes lines where the SAS output swapped values between repeats of the same food.
+fix_meat_split <- function(d, day) {
+  mps <- paste0("DR", day, "I_PF_MPS_TOTAL")
+  hi  <- paste0("DR", day, "I_PF_SEAFD_HI")
+  lo  <- paste0("DR", day, "I_PF_SEAFD_LOW")
+  d %>%
+    mutate(land_meat = .data[[mps]] - .data[[hi]] - .data[[lo]],   # meat + poultry, no seafood
+           sas_total = total_redmeat_new + total_poultry_new,
+           red_proportion = ifelse(sas_total > 0, total_redmeat_new / sas_total, NA_real_),
+           total_redmeat_new = ifelse(!is.na(red_proportion), red_proportion * land_meat,
+                                      total_redmeat_new),
+           total_poultry_new = ifelse(!is.na(red_proportion), (1 - red_proportion) * land_meat,
+                                      total_poultry_new)) %>%
+    select(-land_meat, -sas_total, -red_proportion)
+}
 
-# first need to create diet variables that are combinations of 2+ vars
+foods_day1_ <- fix_meat_split(foods_day1_, day = 1)
+foods_day2_ <- fix_meat_split(foods_day2_, day = 2)
+
+# check: meat columns filled in for both cycles
+foods_day1_ %>%
+  group_by(nhanes_cycle) %>%
+  summarise(lines = n(), missing_redmeat_new = sum(is.na(total_redmeat_new)))
+
+foods_day1_ %>%
+  filter(DR1I_PF_ORGAN > 0) %>%
+  select(SEQN, DR1ILINE, DR1I_PF_MPS_TOTAL, DR1I_PF_SEAFD_HI, DR1I_PF_SEAFD_LOW,
+         total_redmeat_new, total_poultry_new)
+
+
+      # 1. What are the lines with missing meat values?
+      foods_day1_ %>%
+        filter(is.na(total_redmeat_new)) %>%
+        group_by(nhanes_cycle) %>%
+        summarise(lines = n(),
+                  with_meat = sum(DR1I_PF_MPS_TOTAL > 0, na.rm = TRUE),
+                  no_fped   = sum(is.na(DR1I_PF_MPS_TOTAL)),
+                  breast_milk = sum(DR1IFDCD == 11000000))
+      
+      foods_day2_ %>%
+        filter(is.na(total_redmeat_new)) %>%
+        group_by(nhanes_cycle) %>%
+        summarise(lines = n(),
+                  with_meat = sum(DR2I_PF_MPS_TOTAL > 0, na.rm = TRUE),
+                  no_fped   = sum(is.na(DR2I_PF_MPS_TOTAL)),
+                  breast_milk = sum(DR2IFDCD == 11000000))
+      
+      # 2. Does meat add up on every line? (red meat + poultry + seafood = total)
+      foods_day1_ %>%
+        filter(!is.na(total_redmeat_new)) %>%
+        mutate(diff = DR1I_PF_MPS_TOTAL - DR1I_PF_SEAFD_HI - DR1I_PF_SEAFD_LOW -
+                 total_redmeat_new - total_poultry_new) %>%
+        group_by(nhanes_cycle) %>%
+        summarise(lines_off = sum(abs(diff) > 0.05, na.rm = TRUE),
+                  largest_gap = max(abs(diff), na.rm = TRUE))
+      
+      foods_day2_ %>%
+        filter(!is.na(total_redmeat_new)) %>%
+        mutate(diff = DR2I_PF_MPS_TOTAL - DR2I_PF_SEAFD_HI - DR2I_PF_SEAFD_LOW -
+                 total_redmeat_new - total_poultry_new) %>%
+        group_by(nhanes_cycle) %>%
+        summarise(lines_off = sum(abs(diff) > 0.05, na.rm = TRUE),
+                  largest_gap = max(abs(diff), na.rm = TRUE))
+      
+      #Looks good; Only lines left without meat values are breast milk; meat adds up
+    
+# ---- Dietary factors (unchanged from the original) -----------------------------
 
 # day 1
-foods_day1_1 <- foods_day1_ %>% 
-  
-  rowwise() %>% 
-  
+foods_day1_1 <- foods_day1_ %>%
+  rowwise() %>%
   rename(sat_fat = DR1ISFAT,
          p_fat = DR1IPFAT,
          sodium = DR1ISODI,
@@ -210,39 +411,28 @@ foods_day1_1 <- foods_day1_ %>%
          pf_redm_tot = total_redmeat_new,
          pf_poultry_tot = total_poultry_new,
          pf_leg = DR1I_PF_LEGUMES,
-         kcal = DR1IKCAL) %>% 
-  
+         kcal = DR1IKCAL) %>%
   mutate(sea_omega3_fa = sum(DR1IP226, DR1IP205),
          veg_exc_sta = sum(veg_dg, veg_ro, veg_oth),
          fruit_exc_juice = sum(DR1I_F_CITMLB, DR1I_F_OTHER),
          pf_pm = sum(DR1I_PF_CUREDMEAT, DR1I_PF_ORGAN),
          pf_seafood = sum(DR1I_PF_SEAFD_HI, DR1I_PF_SEAFD_LOW),
-         leg_tot = sum(pf_leg, pf_soy), # doesn't include soy milk?
+         leg_tot = sum(pf_leg, pf_soy),
          pf_animal = sum(DR1I_PF_MPS_TOTAL, pf_egg),
          pf_plant = sum(pf_leg, pf_ns, pf_soy)) %>%
-  
   ungroup()
 
 # create soy milk category
-foods_day1_2 <- 
-  foods_day1_1 %>% 
-  mutate(dairy_soy = ifelse(str_detect(DESCRIPTION, "Soy milk") & dairy_tot > 0,
-                                           dairy_tot, 
-                                           0),
-         dairy_cow = ifelse(str_detect(DESCRIPTION, "Soy milk", negate = TRUE) & dairy_tot > 0,
-                            dairy_tot, 
-                            0))
+foods_day1_2 <- foods_day1_1 %>%
+  mutate(dairy_soy = ifelse(str_detect(DESCRIPTION, "Soy milk") & dairy_tot > 0, dairy_tot, 0),
+         dairy_cow = ifelse(str_detect(DESCRIPTION, "Soy milk", negate = TRUE) & dairy_tot > 0, dairy_tot, 0))
+
 # check
-foods_day1_2 %>% 
-  filter(dairy_tot > 0) %>% 
-  select(SEQN, DESCRIPTION, dairy_tot, dairy_soy, dairy_cow) #good
+foods_day1_2 %>% filter(dairy_tot > 0) %>% select(SEQN, DESCRIPTION, dairy_tot, dairy_soy, dairy_cow)
 
 # day 2
-
-foods_day2_1 <- foods_day2_ %>% 
-  
-  rowwise() %>% 
-  
+foods_day2_1 <- foods_day2_ %>%
+  rowwise() %>%
   rename(sat_fat = DR2ISFAT,
          p_fat = DR2IPFAT,
          sodium = DR2ISODI,
@@ -267,8 +457,7 @@ foods_day2_1 <- foods_day2_ %>%
          pf_redm_tot = total_redmeat_new,
          pf_poultry_tot = total_poultry_new,
          pf_leg = DR2I_PF_LEGUMES,
-         kcal = DR2IKCAL) %>% 
-  
+         kcal = DR2IKCAL) %>%
   mutate(sea_omega3_fa = sum(DR2IP226, DR2IP205),
          veg_exc_sta = sum(veg_dg, veg_ro, veg_oth),
          fruit_exc_juice = sum(DR2I_F_CITMLB, DR2I_F_OTHER),
@@ -277,27 +466,23 @@ foods_day2_1 <- foods_day2_ %>%
          leg_tot = sum(pf_leg, pf_soy),
          pf_animal = sum(DR2I_PF_MPS_TOTAL, pf_egg),
          pf_plant = sum(pf_leg, pf_ns, pf_soy)) %>%
-  
   ungroup()
 
 # create soy milk category
-foods_day2_2 <- 
-  foods_day2_1 %>% 
-  mutate(dairy_soy = ifelse(str_detect(DESCRIPTION, "Soy milk") & dairy_tot > 0,
-                            dairy_tot, 
-                            0),
-         dairy_cow = ifelse(str_detect(DESCRIPTION, "Soy milk", negate = TRUE) & dairy_tot > 0,
-                            dairy_tot, 
-                            0))
-# check
-foods_day2_2 %>% 
-  filter(dairy_tot > 0) %>% 
-  select(SEQN, DESCRIPTION, dairy_tot, dairy_soy, dairy_cow) #good
+foods_day2_2 <- foods_day2_1 %>%
+  mutate(dairy_soy = ifelse(str_detect(DESCRIPTION, "Soy milk") & dairy_tot > 0, dairy_tot, 0),
+         dairy_cow = ifelse(str_detect(DESCRIPTION, "Soy milk", negate = TRUE) & dairy_tot > 0, dairy_tot, 0))
 
+# check
+foods_day2_2 %>% filter(dairy_tot > 0) %>% select(SEQN, DESCRIPTION, dairy_tot, dairy_soy, dairy_cow)
+
+# built 2021-2023 FPED food-level files, needed for daily totals in Step 3
+write_rds(foods_l1_whole, "data_inputs/DIET/dietary_intake/DATA/clean_data/fped_dr1iff_L_built_1723.rds")
+write_rds(foods_l2_whole, "data_inputs/DIET/dietary_intake/DATA/clean_data/fped_dr2iff_L_built_1723.rds")
 
 # export foods day 1 and day 2 for later use
-write_rds(foods_day1_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean.rds")
-write_rds(foods_day2_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean.rds")
+write_rds(foods_day1_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
+write_rds(foods_day2_2, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
 
 #' 
 #' #### Step 3: Clean the food and nutrient intake (summary) datasets {.unnumbered}
@@ -319,72 +504,89 @@ meat_sum_day2 <-
   summarise(pf_redm_tot_2 = sum(pf_redm_tot),
             pf_poultry_tot_2 = sum(pf_poultry_tot))
 
-# 2015-2016 diet data (i)
+#OW EDIT - Section Begin
 
-# demographic data
-demo_i <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/demo_i.sas7bdat") %>% 
-  select(SEQN, RIAGENDR, RIDRETH1, DMDEDUC2, INDFMPIR, RIDAGEYR)
+raw <- "data_inputs/DIET/dietary_intake/DATA/raw_data/"
+check_names <- function(a, b) {
+  cat("In first but not second:\n");  print(setdiff(names(a), names(b)))
+  cat("In second but not first:\n");  print(setdiff(names(b), names(a)))
+}
 
-# fped day 1
-fped_i1 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr1tot_1516.sas7bdat") 
+demo_vars <- c("SEQN", "RIAGENDR", "RIDRETH1", "DMDEDUC2", "INDFMPIR", "RIDAGEYR")
 
-# fped day 2
-fped_i2 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr2tot_1516.sas7bdat")
+# ---- P cycle (2017-2020) ----
+demo_p <- read_xpt(paste0(raw, "P_DEMO.xpt")) %>%
+  select(all_of(demo_vars), any_of(c("SDMVPSU", "SDMVSTRA")))
 
-# join the two datasets
-fped_i <- left_join(fped_i1, fped_i2)
+fped_p1 <- read_sas(paste0(raw, "fped_dr1tot_1720.sas7bdat"))   
+fped_p2 <- read_sas(paste0(raw, "fped_dr2tot_1720.sas7bdat"))   
+fped_p  <- left_join(fped_p1, fped_p2)
 
-# nutrients day 1
-nutrient_i1 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr1tot_i.sas7bdat")
+nutrient_p1 <- read_xpt(paste0(raw, "P_DR1TOT.xpt"))
+nutrient_p2 <- read_xpt(paste0(raw, "P_DR2TOT.xpt"))
+nutrient_p  <- full_join(nutrient_p1, nutrient_p2)
 
-# nutrients day 2
-nutrient_i2 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr2tot_i.sas7bdat")
+nhanes_p <- fped_p %>%
+  left_join(nutrient_p) %>%
+  left_join(demo_p) %>%
+  # pre-pandemic dietary weights have a "PP" suffix; give them the usual names
+  rename(any_of(c(WTDRD1 = "WTDRD1PP", WTDR2D = "WTDR2DPP"))) %>%
+  mutate(nhanes_cycle = "2017-2020")
 
-# join the two datasets
-nutrient_i <- full_join(nutrient_i1, nutrient_i2)
+# ---- L cycle (2021-2023) ----
+demo_l <- read_xpt(paste0(raw, "DEMO_L.xpt")) %>%
+  select(all_of(demo_vars), any_of(c("SDMVPSU", "SDMVSTRA")))
 
-# Combine all datasets
-nhanes1516 <-  
-  fped_i %>% 
-  left_join(nutrient_i) %>% 
-  left_join(demo_i)
+# FPED daily totals for 2021-2023: sum each person's food-level FPED amounts
+clean <- "data_inputs/DIET/dietary_intake/DATA/clean_data/"
 
-# 2017-2018 diet data (j)
+fped_l1 <- read_rds(paste0(clean, "fped_dr1iff_L_built_1723.rds")) %>%
+  group_by(SEQN) %>%
+  summarise(across(starts_with("DR1I_"), ~ sum(.x, na.rm = TRUE)), .groups = "drop") %>%
+  rename_with(~ sub("^DR1I_", "DR1T_", .x), starts_with("DR1I_"))
 
-# demographic data
-demo_j <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/demo_j.sas7bdat") %>% 
-  select(SEQN, RIAGENDR, RIDRETH1, DMDEDUC2, INDFMPIR, RIDAGEYR)
+fped_l2 <- read_rds(paste0(clean, "fped_dr2iff_L_built_1723.rds")) %>%
+  group_by(SEQN) %>%
+  summarise(across(starts_with("DR2I_"), ~ sum(.x, na.rm = TRUE)), .groups = "drop") %>%
+  rename_with(~ sub("^DR2I_", "DR2T_", .x), starts_with("DR2I_"))
 
-# fped day 1
-fped_j1 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr1tot_1718.sas7bdat") 
+fped_l <- full_join(fped_l1, fped_l2, by = "SEQN")
 
-# fped day 2
-fped_j2 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_dr2tot_1718.sas7bdat")
+nutrient_l1 <- read_xpt(paste0(raw, "DR1TOT_L.xpt"))
+nutrient_l2 <- read_xpt(paste0(raw, "DR2TOT_L.xpt"))
+nutrient_l  <- full_join(nutrient_l1, nutrient_l2)
 
-# join the two datasets
-fped_j <- left_join(fped_j1, fped_j2)
+# start from the NHANES file so every 2021-2023 participant is kept
+nhanes_l <- nutrient_l %>%
+  left_join(fped_l, by = "SEQN") %>%
+  left_join(demo_l, by = "SEQN") %>%
+  mutate(nhanes_cycle = "2021-2023")
 
-# nutrients day 1
-nutrient_j1 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr1tot_j.sas7bdat")
+# The original renamed DR1TWSZ/DR2TWSZ for 2017-2018 only. Check whether
+# the P and L files differ on these (or any other) names, and rename if needed.
+any(nhanes_p$SEQN %in% nhanes_l$SEQN)          # should now be FALSE
 
-# nutrients day 2
-nutrient_j2 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/dr2tot_j.sas7bdat")
+# FPED column names should match the 2017-2020 file
+check_names(fped_p %>% select(starts_with("DR1T_"), starts_with("DR2T_")),
+            fped_l %>% select(starts_with("DR1T_"), starts_with("DR2T_")))
 
-# join the two datasets
-nutrient_j <- full_join(nutrient_j1, nutrient_j2)
+check_names(nhanes_p, nhanes_l)   
+# TODO look at output --> 10/10/26 "RIDRETH3" in nhanes_p but not nhanes_l; 
+# detailed race/ethnicity variable that includes non-Hispanic Asian as its own group; code builds race from RIDETH1, this isn't needed
+# Drop RIDRETH3
+nhanes_p <- nhanes_p %>% select(-any_of("RIDRETH3"))   
 
-# Combine all datasets
-nhanes1718 <- fped_j %>% 
-  left_join(nutrient_j) %>% 
-  left_join(demo_j) 
+# combine the two NHANES datasets
+nhanes_comb <- bind_rows(nhanes_p, nhanes_l)
 
-# combine the two nhanes datasets
+# check the weights and design variables came through for both cycles
+nhanes_comb %>%
+  group_by(nhanes_cycle) %>%
+  summarise(n = n(),
+            missing_WTDRD1 = sum(is.na(WTDRD1)),
+            missing_PSU = sum(is.na(SDMVPSU)))
 
-# first, change 2 variable names that don't match
-nhanes1718 <- nhanes1718 %>% rename(DR1TWS = DR1TWSZ,
-                                    DR2TWS = DR2TWSZ)
-
-nhanes_comb <- rbind(nhanes1516, nhanes1718)
+#OW Edit - Section End
 
 # combine with meat
 nhanes_comb1 <- left_join(nhanes_comb, meat_sum_day1, by = "SEQN") %>% left_join(meat_sum_day2, by = "SEQN")
@@ -529,8 +731,8 @@ nhanes_comb3 <-
          pf_plant_2 = sum(pf_leg_2, pf_ns_2, pf_soy_2)
   )
 
-# select the variables we need
-nhanes_comb4 <- nhanes_comb3 %>% select(SEQN, RIAGENDR, RIDRETH1, DMDEDUC2,
+# select the variables we need - OW EDIT 10/10/26 added "nhanes_cycle"
+nhanes_comb4 <- nhanes_comb3 %>% select(SEQN, nhanes_cycle, RIAGENDR, RIDRETH1, DMDEDUC2,
                                         INDFMPIR, RIDAGEYR, SDMVPSU, SDMVSTRA,
                                         WTDRD1, WTDR2D, DR1DRSTZ, DR2DRSTZ, 
                                         DRDINT, ends_with("_1"), ends_with("_2")) %>% 
@@ -542,29 +744,38 @@ nhanes_comb4 <- nhanes_comb3 %>% select(SEQN, RIAGENDR, RIDRETH1, DMDEDUC2,
 #' 
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
+# OW EDIT - SECTIon BEGIN
+
+# TODO confirm this against the NCHS analytic guidance for August 2021-August 2023.
+yrs_p <- 3.2
+yrs_l <- 2.0
+
 nhanes_comb5 <- nhanes_comb4 %>% mutate(
-  
   female = ifelse(RIAGENDR == 2, 1, 0),
-  
   sex = ifelse(female == 1, 1, 2),
-  
   race = recode(RIDRETH1,
                 `3` = 1,
                 `4` = 2,
                 `1` = 3,
                 `2` = 3,
                 `5` = 4),
-  
   age = case_when(RIDAGEYR >= 20 & RIDAGEYR < 35 ~ 1,
                   RIDAGEYR >= 35 & RIDAGEYR < 45 ~ 2,
                   RIDAGEYR >= 45 & RIDAGEYR < 55 ~ 3,
                   RIDAGEYR >= 55 & RIDAGEYR < 65 ~ 4,
                   RIDAGEYR >= 65 & RIDAGEYR < 75 ~ 5,
                   RIDAGEYR >= 75 ~ 6),
-  
-  # create new weight variable
-  wtnew = WTDRD1/2)
+  # combined day-1 weight across the two cycles
+  wtnew = case_when(nhanes_cycle == "2017-2020" ~ WTDRD1 * yrs_p / (yrs_p + yrs_l),
+                    nhanes_cycle == "2021-2023" ~ WTDRD1 * yrs_l / (yrs_p + yrs_l)))
 
+
+  #check new weights; missing_wtnew should be 0; two sum_wtnew values should be 3.2:2 
+  nhanes_comb5 %>%
+    group_by(nhanes_cycle) %>%
+    summarise(sum_wtnew = sum(wtnew), missing_wtnew = sum(is.na(wtnew)))
+
+# OW EDIT - SECTION END
 
 #' 
 #' #### Step 6: Create averages of dietary factors for Day 1 and Day 2 {.unnumbered}
@@ -663,6 +874,14 @@ nhanes_final %>%
   mutate(my_subtract = sum2 - sum1) %>%
   filter(my_subtract < -0.05 | my_subtract > 0.05) # not bad
 
+#Check - alternative way
+nhanes_final %>%
+  mutate(gap = (pf_redm + pf_poultry + pf_pm + pf_organ) -
+           (pf_redm_tot + pf_poultry_tot)) %>%
+  group_by(nhanes_cycle) %>%
+  summarise(people  = sum(!is.na(gap)),
+            off     = sum(abs(gap) > 0.05, na.rm = TRUE),
+            largest = max(abs(gap), na.rm = TRUE))    #Essentially a pas; one person in 2017-2020 is off by 1.92 oz-eq; moving on
 
 #' 
 #' #### Step 7: Examine cleaned NHANES data {#step-seven} {.unnumbered}
@@ -675,12 +894,12 @@ summary(nhanes_final)
 # check for outliers
 
 # kcal < 500
-nhanes_final %>% filter(kcal_1 < 500) %>% nrow()  #233
-nhanes_final %>% filter(kcal_2 < 500) %>% nrow()  #301
+nhanes_final %>% filter(kcal_1 < 500) %>% nrow()  #233 - OW EDIT 272
+nhanes_final %>% filter(kcal_2 < 500) %>% nrow()  #301 - OW EDIT 343
 
 # kcal > 3500
-nhanes_final %>% filter(kcal_1 > 3500) %>% nrow()  #1028
-nhanes_final %>% filter(kcal_2 > 3500) %>% nrow()  #588
+nhanes_final %>% filter(kcal_1 > 3500) %>% nrow()  #1028 - OW EDIT 1185
+nhanes_final %>% filter(kcal_2 > 3500) %>% nrow()  #588 - OW EDIT 791
 
 # do not remove because I will filter out 
 # dietary recalls that are not valid later
@@ -709,9 +928,69 @@ nhanes_final1 <- nhanes_final %>%
 # check new survey weight
 nhanes_final1 %>% select(SEQN, wtnew, SDMVPSU, SDMVSTRA, inAnalysis) # looks good
 
+#alternative check
+nhanes_final1 %>%
+  ungroup() %>%
+  group_by(nhanes_cycle) %>%
+  summarise(people         = n(),
+            in_analysis    = sum(inAnalysis),
+            missing_wtnew  = sum(is.na(wtnew)),
+            pop_total_mil  = sum(wtnew) / 1e6,
+            pop_adults_mil = sum(wtnew[inAnalysis]) / 1e6) %>%
+  as.data.frame()   #none missing_wtnew
+
 # export
 write_rds(nhanes_final1,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_clean.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_clean.rds")
+
+# =============================================================================
+# NEW CHUNK (add after Step 7): grocery proportion of intake (pro_gro)
+# Needed only for the env-eco-soc models. Replaces the old
+# "..._bysource_02-03-2025.csv" input, whose code is not in the manual.
+# This is a survey-weighted point estimate from unadjusted intake, so it
+# approximates the original method.
+# =============================================================================
+source("code/version_date.R")
+
+foods_day1_2  <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
+foods_day2_2  <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
+nhanes_final1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_clean.rds")
+
+diet_vars <- read_csv("data_inputs/OTHER/labels/DATA/dietary_factors_010424_FINAL.csv") %>%
+  pull(Food_group)
+
+# food groups that exist at the individual-food level
+food_vars <- intersect(diet_vars, names(foods_day1_2))
+
+# total intake from each source, per person, both days together
+by_source <- bind_rows(
+  foods_day1_2 %>% select(SEQN, foodsource, all_of(food_vars)),
+  foods_day2_2 %>% select(SEQN, foodsource, all_of(food_vars))) %>%
+  group_by(SEQN, foodsource) %>%
+  summarise(across(all_of(food_vars), ~ sum(.x, na.rm = TRUE)), .groups = "drop") %>%
+  pivot_longer(all_of(food_vars), names_to = "food", values_to = "amount") %>%
+  pivot_wider(names_from = foodsource, values_from = amount, values_fill = 0)
+
+# weighted proportion of each food group's intake that came from grocery stores
+grocery_proportions <- by_source %>%
+  left_join(nhanes_final1 %>% select(SEQN, subgroup, wtnew, inAnalysis), by = "SEQN") %>%
+  filter(inAnalysis) %>%
+  group_by(subgroup, food) %>%
+  summarise(pro_gro = sum(wtnew * Grocery) / sum(wtnew * (Grocery + Other)),
+            .groups = "drop") %>%
+  mutate(pro_gro = ifelse(is.nan(pro_gro), NA, pro_gro),
+         subgroup = as.character(subgroup))   # 02 joins on character subgroup
+
+# check: proportions between 0 and 1, and 48 subgroups per food
+summary(grocery_proportions$pro_gro)
+grocery_proportions %>% count(food)
+
+write_csv(grocery_proportions,
+          dated("data_inputs/DIET/dietary_intake/DATA/output_data/NHANES_1723_pro_gro"))
+
+# SSB is not a column in foods_day1_2. If you need its proportion, repeat the
+# calculation with foods_day1_ssb_1723.rds / foods_day2_ssb_1723.rds (grams).
+
 
 
 #' 
@@ -727,170 +1006,153 @@ write_rds(nhanes_final1,
 #' 
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
-rm(list=ls())
+# OW EDIT - SECTION BEGIN
 
-# load packages
+rm(list = ls())
 library(tidyverse)
 library(readxl)
 library(haven)
 
+raw <- "data_inputs/DIET/dietary_intake/DATA/raw_data/"
+wweia_codes <- paste0(raw, "WWEIA category codes.xlsx")   # NEW: file path used below
 
-#' 
-#' Import the WWEIA 2015-2016 and 2017-2018 datasets. These contain categorizations of the FNDDS food codes that we will utilize later on.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
+# ---- WWEIA food categories by FNDDS food code ------------------------------
+wweia_p <- read_xlsx(paste0(raw, "WWEIA1720_foodcat_FNDDS.xlsx"))
+wweia_l <- read_xlsx(paste0(raw, "WWEIA2123_foodcat_FNDDS.xlsx"))
 
-wweia1516 <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA1516_foodcat_FNDDS.xlsx")
-wweia1718 <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA1718_foodcat_FNDDS.xlsx")
+# ---- WWEIA category groupings (GL1-GL3) used to identify SSBs --------------
+gl1  <- read_xlsx(wweia_codes, sheet = "GL1")
+gl2  <- read_xlsx(wweia_codes, sheet = "GL2")
+gl2b <- read_xlsx(wweia_codes, sheet = "GL2b")
+gl3  <- read_xlsx(wweia_codes, sheet = "GL3")
 
+# ---- Mapping from WWEIA categories to the GL groupings ---------------------
+map <- read_xlsx(wweia_codes, sheet = "Mapping")
 
-#' 
-#' Then import these other categorizations (GL1, GL2, GL3) that are used. 
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
+# NEW: WWEIA categories introduced with FNDDS 2021-2023 (some also appear in the
+# 2017-2020 category file) are not in the Mapping sheet. Each copies the GL
+# mapping of the existing category it most resembles. None is an SSB category
+# (GL1 151-156), so this only stops them coming out as NA.
+new_categories <- tribble(
+  ~category_number, ~copy_from,
+  1902, 1404,   # Plant-based milk               <- Milk substitutes
+  1904, 1820,   # Plant-based yogurt             <- Yogurt, regular
+  3740, 3703,   # Deli and cured meat sandwiches <- Frankfurter sandwiches
+  3742, 3704,   # Meat and BBQ sandwiches        <- Chicken fillet sandwiches
+  3744, 3720,   # Vegetable sandwiches/burgers   <- Cheese sandwiches
+  3804, 3802,   # Soups, broth-based             <- Soups
+  3806, 3802,   # Soups, cream-based             <- Soups
+  3808, 3802,   # Ramen and Asian broth soups    <- Soups
+  9007, 9008    # Baby food: mixtures            <- Baby food: meat and dinners
+)
 
-gl1 <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA category codes.xlsx",
-                 sheet = "GL1")
+new_rows <- new_categories %>%
+  left_join(map, by = c("copy_from" = "category_number")) %>%
+  select(-copy_from)
 
-gl2 <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA category codes.xlsx",
-                 sheet = "GL2")
+map <- bind_rows(map, new_rows)
 
-gl2b <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA category codes.xlsx",
-                  sheet = "GL2b")
-
-gl3 <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA category codes.xlsx",
-                 sheet = "GL3")
-
-
-#' 
-#' Then, import a mapping from the WWEIA categories to these GL categories; and then join everything together.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
-
-map <- read_xlsx("data_inputs/DIET/dietary_intake/DATA/raw_data/WWEIA category codes.xlsx",
-                 sheet = "Mapping")
-
-# join
-map_join <- 
-  map %>% 
-  left_join(gl1) %>% 
-  left_join(gl2) %>% 
-  left_join(gl2b) %>% 
+# join the GL groupings (now includes the new categories)
+map_join <-
+  map %>%
+  left_join(gl1) %>%
+  left_join(gl2) %>%
+  left_join(gl2b) %>%
   left_join(gl3)
 
-# merge with wweia datasets
-wweia1516_1 <- wweia1516 %>% left_join(map_join, by = "category_number")
-wweia1718_1 <- wweia1718 %>% left_join(map_join, by = "category_number")
+# ---- Merge with the WWEIA food-category files ------------------------------
+wweia_p_1 <- wweia_p %>% left_join(map_join, by = "category_number")
+wweia_l_1 <- wweia_l %>% left_join(map_join, by = "category_number")
 
+# ---- Checks ----------------------------------------------------------------
+new_rows %>% filter(if_any(-category_number, is.na))             # should be empty
+wweia_p_1 %>% filter(is.na(GL1)) %>% distinct(category_number)   # should be empty
+wweia_l_1 %>% filter(is.na(GL1)) %>% distinct(category_number)   # should be empty
 
-#' 
-#' Import FPED 2015-2016 and 2017-2018 datasets.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
+# How the new categories were identified (kept for reference; no need to re-run)
+# wweia_l %>%
+#   filter(category_number %in% new_categories$category_number) %>%
+#   distinct(category_number, category_description) %>%
+#   arrange(category_number)
+#
+# wweia_p %>%
+#   distinct(category_number, category_description) %>%
+#   left_join(map_join %>% select(category_number, GL1, GL2, GL3), by = "category_number") %>%
+#   filter(str_detect(category_description,
+#                     regex("milk substitute|yogurt|sandwich|soup|baby food", ignore_case = TRUE))) %>%
+#   arrange(category_number) %>%
+#   print(n = Inf)      
 
-fped1516 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_1516.sas7bdat")
-fped1718 <- read_sas("data_inputs/DIET/dietary_intake/DATA/raw_data/fped_1718.sas7bdat")
+# ---- Added sugar per 100 g by food code (FPED) -----------------------------
+# CHANGED: there is no FPED 2021-2023 yet. Both cycles use FPED 2017-2020
+# (fped_1720), and the 29 new 2021-2023 food codes take the values of their
+# stand-in codes from fped_proxy_codes_2123.csv (same file as Step 2).
+fped_100g <- read_sas(paste0(raw, "fped_1720.sas7bdat"))
 
-
-#' 
-#' Calculate the number of grams of added sugar (add_sugars_g), originally provided in teaspoons (ADD_SUGARS), in one serving of each FNDDS food code.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
-
-fped1516_1 <- 
-  fped1516 %>% 
-  rename(food_code = FOODCODE) %>% 
-  # convert tsp to gram using 1 tsp=4.2g sugar
-  mutate(add_sugars_g = ADD_SUGARS * 4.2) %>%
-  select(food_code, add_sugars_g) 
-
-fped1718_1 <- 
-  fped1718 %>% 
-  rename(food_code = FOODCODE) %>% 
-  # convert tsp to gram using 1 tsp=4.2g sugar
-  mutate(add_sugars_g = ADD_SUGARS * 4.2) %>%
+fped_p_1 <- fped_100g %>%
+  rename(food_code = FOODCODE) %>%
+  mutate(add_sugars_g = ADD_SUGARS * 4.2) %>%   # 1 tsp = 4.2 g sugar
   select(food_code, add_sugars_g)
 
+# NEW: 2021-2023 = all FPED 2017-2020 codes + the new codes via their stand-ins
+proxy <- read_csv(paste0(raw, "fped_proxy_codes_2123.csv"), show_col_types = FALSE)
 
-#' 
-#' Import the NHANES individual-level food data (cleaned in [Chapter 2.2](cleaning-code-for-nhanes-diet-data.html#clean-raw-nhanes-data)), and merge with the FPED and WWEIA datasets.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
+fped_l_1 <- bind_rows(
+  fped_p_1,
+  proxy %>%
+    select(food_code = new_code, proxy_code) %>%
+    left_join(fped_p_1, by = c("proxy_code" = "food_code")) %>%
+    select(food_code, add_sugars_g))
 
-# read in nhanes individual food data
-foods_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean.rds")
-foods_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean.rds")
+# NEW checks: each food code once; every new code got an added-sugar value
+fped_l_1 %>% count(food_code) %>% filter(n > 1) %>% nrow()                          # expect 0
+fped_l_1 %>% filter(food_code %in% proxy$new_code, is.na(add_sugars_g)) %>% nrow()  # expect 0
 
-# split up by NHANES cycle x Day of intake
-nhanes1516_day1 <- foods_day1 %>% filter(nhanes_cycle == "2015-2016")
-nhanes1718_day1 <- foods_day1 %>% filter(nhanes_cycle == "2017-2018")
-nhanes1516_day2 <- foods_day2 %>% filter(nhanes_cycle == "2015-2016")
-nhanes1718_day2 <- foods_day2 %>% filter(nhanes_cycle == "2017-2018")
+# ---- Individual food data, split by cycle and day ----------------------------
+foods_day1 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_clean_1723.rds")
+foods_day2 <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_clean_1723.rds")
 
-# merge fped and wweia datasets
-merge1516 <- left_join(wweia1516_1, fped1516_1, by = "food_code")
-merge1718 <- left_join(wweia1718_1, fped1718_1, by = "food_code")
+nhanes_p_day1 <- foods_day1 %>% filter(nhanes_cycle == "2017-2020")
+nhanes_l_day1 <- foods_day1 %>% filter(nhanes_cycle == "2021-2023")
+nhanes_p_day2 <- foods_day2 %>% filter(nhanes_cycle == "2017-2020")
+nhanes_l_day2 <- foods_day2 %>% filter(nhanes_cycle == "2021-2023")
 
-# merge "merge" datasets with nhanes datasets
-nhanes1516_day1_join <- left_join(nhanes1516_day1, merge1516, by = c("DR1IFDCD" = "food_code"))
-nhanes1516_day2_join <- left_join(nhanes1516_day2, merge1516, by = c("DR2IFDCD" = "food_code"))
-nhanes1718_day1_join <- left_join(nhanes1718_day1, merge1718, by = c("DR1IFDCD" = "food_code"))
-nhanes1718_day2_join <- left_join(nhanes1718_day2, merge1718, by = c("DR2IFDCD" = "food_code"))
+# ---- WWEIA category + added sugar for each food code -------------------------
+merge_p <- left_join(wweia_p_1, fped_p_1, by = "food_code")
+merge_l <- left_join(wweia_l_1, fped_l_1, by = "food_code")
 
+nhanes_p_day1_join <- left_join(nhanes_p_day1, merge_p, by = c("DR1IFDCD" = "food_code"))
+nhanes_p_day2_join <- left_join(nhanes_p_day2, merge_p, by = c("DR2IFDCD" = "food_code"))
+nhanes_l_day1_join <- left_join(nhanes_l_day1, merge_l, by = c("DR1IFDCD" = "food_code"))
+nhanes_l_day2_join <- left_join(nhanes_l_day2, merge_l, by = c("DR2IFDCD" = "food_code"))
 
-#' 
-#' ### Create SSB Indicator Variable
-#' 
-#' Our team decided that a beverage would only be considered an "SSB" if it contained more than 5 grams of added sugar per serving.
-#' 
-#' We set the indicator vairable "ssb" equal to 1 if the number of grams of added sugar per serving ("add_sugars_g") was greater than or equal to 5 AND if the GL1 category was equal to 151 ("Sugar-sweetened beverages"), 152 ("Sugar-sweetened beverages (diet vs. SSB)"), 153 ("Nutritional beverages (diet vs. SSB)), 154 ("Smoothies and grain drinks (diet vs. SSB)"), 155 ("Coffee"), or 156 ("Tea").
-#' 
-#' We set "ssb" equal to 0 in all other cases.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
+# ---- SSB indicator: same rule as the original ---------------------------------
+# >= 5 g added sugar per 100 g, and WWEIA beverage group GL1 151-156
+make_ssb <- function(d) mutate(d, ssb = ifelse(add_sugars_g >= 5 & between(GL1, 151, 156), 1, 0))
 
-# work on Day 1 of NHANES '15-'16 first
-nhanes1516_day1_join_1 <-
-  nhanes1516_day1_join %>% 
-  mutate(ssb = ifelse(add_sugars_g >= 5 & between(GL1, 151, 156), 1, 0))
+day1_final <- bind_rows(
+  make_ssb(nhanes_p_day1_join) %>% select(SEQN, DR1ILINE, DR1IFDCD, DESCRIPTION, DR1IGRMS, nhanes_cycle, ssb),
+  make_ssb(nhanes_l_day1_join) %>% select(SEQN, DR1ILINE, DR1IFDCD, DESCRIPTION, DR1IGRMS, nhanes_cycle, ssb))
 
-# Day 1 of NHANES '17--18
-nhanes1718_day1_join_1 <-
-  nhanes1718_day1_join %>% 
-  mutate(ssb = ifelse(add_sugars_g >= 5 & between(GL1, 151, 156), 1, 0)) 
+day2_final <- bind_rows(
+  make_ssb(nhanes_p_day2_join) %>% select(SEQN, DR2ILINE, DR2IFDCD, DESCRIPTION, DR2IGRMS, nhanes_cycle, ssb),
+  make_ssb(nhanes_l_day2_join) %>% select(SEQN, DR2ILINE, DR2IFDCD, DESCRIPTION, DR2IGRMS, nhanes_cycle, ssb))
 
-# only select necessary vars
-nhanes1516_day1_join_2 <- nhanes1516_day1_join_1 %>% select(SEQN, DR1ILINE, DR1IFDCD, DESCRIPTION, DR1IGRMS, ssb)
-nhanes15718_day1_join_2 <- nhanes1718_day1_join_1 %>% select(SEQN, DR1ILINE, DR1IFDCD, DESCRIPTION, DR1IGRMS, ssb)
+# ---- Checks -------------------------------------------------------------------
+# CHANGED: by cycle and for both days. Expect few or no NA lines.
+day1_final %>% group_by(nhanes_cycle) %>%
+  summarise(lines = n(), ssb_lines = sum(ssb == 1, na.rm = TRUE), unmatched = sum(is.na(ssb)))
+day2_final %>% group_by(nhanes_cycle) %>%
+  summarise(lines = n(), ssb_lines = sum(ssb == 1, na.rm = TRUE), unmatched = sum(is.na(ssb)))
 
-# bind Day 1 of NHANES '15-'16 and '17-'18 together
-day1_final <- rbind(nhanes1516_day1_join_2, nhanes15718_day1_join_2)
+# if unmatched > 0, see which foods they are
+day1_final %>% filter(is.na(ssb)) %>% count(DR1IFDCD, DESCRIPTION, sort = TRUE)
 
-# now work on Day 2 of NHANES '15-'16
-nhanes1516_day2_join_1 <-
-  nhanes1516_day2_join %>% 
-  mutate(ssb = ifelse(add_sugars_g >= 5 & between(GL1, 151, 156), 1, 0)) 
-
-# Day 2 of NHANES '17-'18
-nhanes1718_day2_join_1 <-
-  nhanes1718_day2_join %>% 
-  mutate(ssb = ifelse(add_sugars_g >= 5 & between(GL1, 151, 156), 1, 0))
-
-# only select necessary vars
-nhanes1516_day2_join_2 <- nhanes1516_day2_join_1 %>% select(SEQN, DR2ILINE, DR2IFDCD, DESCRIPTION, DR2IGRMS, ssb)
-nhanes1718_day2_join_2 <- nhanes1718_day2_join_1 %>% select(SEQN, DR2ILINE, DR2IFDCD, DESCRIPTION, DR2IGRMS, ssb)
-
-# bind Day 2 of NHANES '15-'16 and '17-'18 together
-day2_final <- rbind(nhanes1516_day2_join_2, nhanes1718_day2_join_2)
+write_rds(day1_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb_1723.rds")
+write_rds(day2_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb_1723.rds")
 
 
-#' 
-#' Export the datasets to use in the next section.
-#' 
-## ----results='hide', warning=FALSE, message=FALSE-------
-
-write_rds(day1_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day1_ssb.rds")
-write_rds(day2_final, "data_inputs/DIET/dietary_intake/DATA/clean_data/foods_day2_ssb.rds")
+# OW EDIT - SECTION END
 
 
 #' 
@@ -950,8 +1212,23 @@ ssb_bothdays <- full_join(ssb_day1_wide1, ssb_day2_wide1, by = "SEQN")
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 # check
-# are there any where both are missing? no
+# are there any where both are missing? 
 ssb_bothdays %>% filter(is.na(ssb_1) & is.na(ssb_2))
+# -- OW EDIT 10/10/26; yes: 268 (217 in 2017-2020, 51 in 2021-2023),
+# all children / non-reliable recalls (breastfed infants: breast milk has no grams).
+# None are in the analysis sample (adults 20+, reliable day-1 recall).
+  
+  # unmatched food lines by cycle (from the previous section)
+  day1_final %>% group_by(nhanes_cycle) %>% summarise(lines = n(), unmatched = sum(is.na(ssb)))
+  
+  # which foods are unmatched most often
+  day1_final %>% filter(is.na(ssb)) %>% count(DR1IFDCD, DESCRIPTION, sort = TRUE) %>% print(n = 20)
+  
+  # are the 268 people in the analysis sample (adults 20+, reliable day-1 recall)?
+  both_na <- ssb_bothdays %>% filter(is.na(ssb_1) & is.na(ssb_2)) %>% pull(SEQN)
+  nhanes_1 %>% ungroup() %>% filter(SEQN %in% both_na) %>%
+    count(nhanes_cycle, adult_20plus = RIDAGEYR >= 20, reliable_day1 = DR1DRSTZ == 1)
+      
 
 # calculate day1/day2 ssb intake average
 ssb_bothdays_1 <-
@@ -969,7 +1246,7 @@ ssb_bothdays_1[ssb_bothdays_1 == "NaN"] <- NA
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 # read in clean nhanes dataset
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_clean.rds")
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_clean.rds")
 
 # merge
 nhanes_1 <- left_join(nhanes, ssb_bothdays_1, by = "SEQN")
@@ -978,9 +1255,8 @@ nhanes_1 <- left_join(nhanes, ssb_bothdays_1, by = "SEQN")
 nhanes_1 %>% filter(ssb_1 > 0 & ssb_1 < 11) %>% head()
 nhanes_1 %>% filter(ssb_2 > 0 & ssb_2 < 11) %>% head()
 
-# look at just one person - 84956
-foods_day2 %>% filter(SEQN == 84956) %>% head()
-foods_day1 %>% filter(SEQN == 84997) %>% head()
+# look at just one person 
+day1_final %>% filter(SEQN == 113450, ssb == 1)   # their SSB line(s) on day 1
 
 # it looks fine
 
@@ -991,7 +1267,7 @@ foods_day1 %>% filter(SEQN == 84997) %>% head()
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 write_rds(nhanes_1,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_incl_ssb_clean.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_incl_ssb_clean.rds")
 
 
 #' 
@@ -1027,7 +1303,7 @@ library(survey)
 #' 
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_incl_ssb_clean.rds") %>% 
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_incl_ssb_clean.rds") %>% 
   ungroup() # get rid of rowwise formatting
 
 nhanes1 <- nhanes %>% 
@@ -1066,8 +1342,11 @@ nhanes2 <- nhanes_long2 %>% mutate(calories = kcal,
 #' 
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
-# 7 people have kcal=0
+# 12 people have kcal=0
 nhanes2 %>% filter(log_calories == "-Inf" & inAnalysis == "TRUE") %>% head()
+nhanes2 %>%
+  filter(is.infinite(log_calories), inAnalysis) %>%
+  count(nhanes_cycle, day)
 
 # if logcalories is -Inf, change to NA
 nhanes3 <- nhanes2 %>% 
@@ -1077,6 +1356,10 @@ nhanes3 <- nhanes2 %>%
 # check
 nhanes3 %>% filter(log_calories == "-Inf" & inAnalysis == "TRUE") #good
 
+# OW EDT -- NOTES
+# 12 person-days (adults in analysis) have kcal = 0, e.g. only water that day:
+# 2017-2020: 2 on day 1, 4 on day 2; 2021-2023: 5 on day 1, 1 on day 2.
+# log(0) = -Inf, so these are set to NA below and left out of the energy adjustment.
 
 #' 
 #' Below is a function that we can apply to all dietary factors in order to calculate the residual method for each.
@@ -1165,10 +1448,10 @@ nhanes_adj %>% select(pf_poultry_tot, pf_poultry_tot_adj) %>% head()
 
 # export data
 write_rds(nhanes_adj,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_long.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_long.rds")
 
 write_csv(nhanes_adj,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_long.csv")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_long.csv")
 
 
 #' 
@@ -1294,10 +1577,10 @@ nhanes_adj_wide2[nhanes_adj_wide2 == "NaN"] <- NA
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 write_rds(nhanes_adj_wide2,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_wide.rds")
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_wide.rds")
 
 write_csv(nhanes_adj_wide2,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_wide.csv",
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_wide.csv",
           na = "")
 
 #' 
@@ -1335,12 +1618,11 @@ library(tidyverse)
 library(fastDummies)
 
 # Import data
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_long.rds")
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_long.rds")
 
 # only select certain variables
 nhanes1 <- nhanes %>% 
   select(SEQN, age, sex, race, subgroup, DRDINT, SDMVPSU, SDMVSTRA, wtnew, reliable_yes, inAnalysis, day, ends_with("adj"))
-
 
 #' 
 #' Then, we need to create a new variable ("subgroup_new") that only has a non-missing subgroup number if that participant's data is reliable (i.e., inAnalysis == TRUE). This essentially changes any subgroup number to NA if the participant's data is unreliable.
@@ -1355,7 +1637,6 @@ nhanes2 <- nhanes1 %>%
 
 # check
 nhanes2 %>% filter(!(is.na(subgroup)) & !(is.na(subgroup_new))) %>% head()
-
 
 #' 
 #' Next, create dummy variables for the variables "day", "inAnalysis", "subgroup", and "subgroup_new". We utilize the "dummy_cols" function from the "fastDummies" package to do this quickly. You can learn more about this function by running the command "?dummy_cols".
@@ -1383,6 +1664,19 @@ nhanes4 <- nhanes3 %>%
 nhanes4 %>% filter(is.na(fruit_tot_adj)) %>% head() #good
 nhanes4 %>% filter(is.na(fruit_tot_adj) & inAnalysis == "TRUE") %>% head() #good
 
+# OW EDIT - check alternative -- rows with missing adjusted fruit intake, by analysis status
+nhanes4 %>% filter(is.na(fruit_tot_adj)) %>% count(inAnalysis)
+# NOTE (to fix later): 3 analysed person-days have missing adjusted intake for all
+# FPED food groups (fruit_tot_adj, veg_*_adj, gr_*_adj, pf_*_adj, etc.).
+# SEQN 130663, 133923, 138671 - all 2021-2023, day 1, kcal = 0 (reliable recall,
+# no foods reported, e.g. only plain water).
+# Cause: 2021-2023 FPED daily totals were built by summing food lines (Step 3),
+# so people with no food lines get NA instead of 0. USDA's 2017-2020 daily-total
+# files give 0 for such people, so 2017-2020 is not affected.
+# Fix: in Step 3, after nhanes_l is built, set missing DR1T_/DR2T_ FPED columns
+# to 0 where DR1DRSTZ / DR2DRSTZ == 1, then re-run 02 from Step 3 onwards.
+# Impact for now: negligible - the NCI macro drops these 3 person-days and uses
+# those people's other recall day where available.
 
 #' 
 #' Need to change poultry variable name because it's too long for SAS (this is why SAS is inferior to R - insert poop emoji).
@@ -1399,7 +1693,7 @@ nhanes5 <- nhanes4 %>%
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 write_csv(nhanes5,
-          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes_incl_ssb_adj_clean_long.csv",
+          "data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_incl_ssb_adj_clean_long.csv",
           na = "")
 
 
@@ -1409,8 +1703,98 @@ write_csv(nhanes5,
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 write_csv(nhanes5,
-          "data_inputs/DIET/standard_deviations/DATA/in/nhanes_incl_ssb_adj_clean_long.csv",
+          "data_inputs/DIET/standard_deviations/DATA/in/nhanes1723_incl_ssb_adj_clean_long.csv",
           na = "")
+
+# OW EDIT - SECTIon BEGIN
+# =============================================================================
+# Checks on the NCI (SIMPLE macro) input file before sending it to the cluster
+# Run after the "Prepare NHANES Data for SAS Macros" section of 02.
+# Each check prints a result; the comment says what to expect.
+# =============================================================================
+
+rm(list = ls())
+
+library(tidyverse)
+
+# the exact file the SAS program will read
+nci_file <- "data_inputs/DIET/standard_deviations/DATA/in/nhanes1723_incl_ssb_adj_clean_long.csv"
+d <- read_csv(nci_file, show_col_types = FALSE)
+
+# list of diet variables the macro will run
+macro_vars <- read_csv("data_inputs/DIET/standard_deviations/DATA/in/macro_input_LASTING_ALL_VARS.csv",
+                       show_col_types = FALSE)
+
+# ---- 1. Structure ------------------------------------------------------------
+dim(d)                                   # rows = person-days; about 23,160 + day-2 rows
+d %>% count(SEQN, day) %>% filter(n > 1) %>% nrow()   # expect 0: one row per person-day
+d %>% filter(DRDINT == 1, day == 2) %>% nrow()        # expect 0: no empty day-2 rows
+
+# columns the prep code creates and the macro uses
+needed <- c("SEQN", "age", "sex", "race", "subgroup", "subgroup_new", "DRDINT",
+            "SDMVPSU", "SDMVSTRA", "wtnew", "reliable_yes", "inAnalysis",
+            "inAnalysis_num", "day", "day_2")
+setdiff(needed, names(d))                # expect character(0)
+
+# SAS variable names: max 32 characters, letters/digits/underscore, no leading digit
+names(d)[nchar(names(d)) > 32]                       # expect character(0)
+names(d)[!grepl("^[A-Za-z_][A-Za-z0-9_]*$", names(d))]  # expect character(0)
+
+# ---- 2. Diet variables the macro will run ------------------------------------
+names(macro_vars)                        # find the column listing the variable names
+# replace `variable` below with that column's name
+macro_var_names <- macro_vars$variable   # TODO column name
+setdiff(macro_var_names, names(d))       # expect character(0): every variable exists
+
+# ---- 3. Analysis sample ------------------------------------------------------
+an <- d %>% filter(inAnalysis_num == 1)
+
+n_distinct(an$SEQN)                      # adults 20+ with reliable day-1 recall
+an %>% filter(is.na(subgroup_new)) %>% nrow()                 # expect 0
+range(an$subgroup_new)                                        # expect 1 48
+an %>% distinct(SEQN, subgroup_new) %>% count(subgroup_new) %>%
+  summarise(smallest = min(n), largest = max(n))              # every subgroup has people
+d %>% filter(inAnalysis_num != 1, !is.na(subgroup_new)) %>% nrow()  # expect 0
+
+# ---- 4. Weights and survey design --------------------------------------------
+an %>% summarise(missing_wt = sum(is.na(wtnew)), zero_wt = sum(wtnew == 0),
+                 missing_psu = sum(is.na(SDMVPSU)), missing_strata = sum(is.na(SDMVSTRA)))
+# expect all 0
+
+# a person's weight should be the same on both days
+d %>% group_by(SEQN) %>% summarise(k = n_distinct(wtnew)) %>% filter(k > 1) %>% nrow()  # expect 0
+
+# every stratum needs at least 2 PSUs among analysed people (for standard errors)
+an %>% distinct(SDMVSTRA, SDMVPSU) %>% count(SDMVSTRA) %>% filter(n < 2)   # expect 0 rows
+
+# strata numbers must not overlap between the two cycles
+# (needs nhanes_cycle; if it is not in the file, join it from nhanes1723_clean.rds)
+if ("nhanes_cycle" %in% names(d)) {
+  d %>% distinct(nhanes_cycle, SDMVSTRA) %>% count(SDMVSTRA) %>% filter(n > 1) %>% nrow()  # expect 0
+}
+
+# ---- 5. Intake values --------------------------------------------------------
+adj_vars <- names(d)[str_ends(names(d), "_adj")]
+
+an %>%
+  summarise(across(all_of(adj_vars),
+                   list(missing  = ~ sum(is.na(.x)),
+                        negative = ~ sum(.x < 0, na.rm = TRUE),
+                        zero_pct = ~ round(100 * mean(.x == 0, na.rm = TRUE), 1),
+                        mean     = ~ round(mean(.x, na.rm = TRUE), 2),
+                        max      = ~ round(max(.x, na.rm = TRUE), 1)))) %>%
+  pivot_longer(everything(), names_to = c("variable", ".value"),
+               names_pattern = "(.*_adj)_(.*)") %>%
+  print(n = Inf)
+# expect: missing small (the 0-kcal days); negative 0;
+# zero_pct high for episodically eaten foods (e.g. pf_organ, ssb) and low for
+# everyday ones (e.g. sodium, kcal); means in plausible daily units at 2,000 kcal
+
+
+# OW EDIT - SECTIOn END
+
+
+
 
 
 #' 
@@ -1504,7 +1888,7 @@ rm(list=ls())
 source("code/version_date.R")
 
 # Specify the directory containing the CSV files
-directory <- "outputs/intake/output_031025_ncimethod"
+directory <- "outputs/intake/output_101126_ncimethod"
 
 # Get the list of all CSV files in the directory
 file_list <- list.files(path = directory, pattern = "*.csv", full.names = TRUE)
@@ -1542,7 +1926,7 @@ intake2 <- intake1 %>%
 # for subgroup 0 only
 # leave commented out
 # write_csv(intake2, 
-#           dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1518_summary_allfoods_adj_bysub_ncimethod"))
+#           dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1723_summary_allfoods_adj_bysub_ncimethod"))
 
 
 #' 
@@ -1557,7 +1941,7 @@ labels1 <- labels %>%
   relocate(food)
 
 # read in pro_gro from original output
-ratio <- read_csv("data_inputs/DIET/dietary_intake/DATA/output_data/NHANES_1518_summary_allfoods_adj_bysub_bysource_02-03-2025.csv") %>% 
+ratio <- read_csv("data_inputs/DIET/dietary_intake/DATA/output_data/NHANES_1723_summary_allfoods_adj_bysub_bysource_02-03-2025.csv") %>% 
   select(subgroup, food, pro_gro) %>% 
   mutate(subgroup = as.character(subgroup))
 
@@ -1578,7 +1962,7 @@ intake4 <- intake3 %>%
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 write_csv(intake4, 
-          dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1518_summary_allfoods_adj_bysub_ncimethod"))
+          dated("data_inputs/DIET/dietary_intake/DATA/output_data_from_cluster/NHANES_1723_summary_allfoods_adj_bysub_ncimethod"))
 
 
 

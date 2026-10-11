@@ -42,7 +42,7 @@ First, we need to import the NHANES dataset to get the survey weight variables t
 ```{r}
 
 # import subgroup-seqn mapping
-nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1518_adj_clean_wide.rds")
+nhanes <- read_rds("data_inputs/DIET/dietary_intake/DATA/clean_data/nhanes1723_adj_clean_wide.rds")
 
 # select subset of variables
 subgroup_dat <- nhanes %>% select(SEQN, subgroup, SDMVPSU, SDMVSTRA, wtnew, inAnalysis)
@@ -93,13 +93,13 @@ Import the data that were cleaned in the last few chapters.
 ```{r}
 
 # diet intake data
-# both_days <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/both_days15_env.rds")
+# both_days <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/both_days15_env_1723.rds")
 
 # price data
-price_dat <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/price_input_dat.rds")
+price_dat <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/price_input_dat_1723.rds")
 
 # environment and social data
-enviro_dat <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/enviro_input_dat.rds")
+enviro_dat <- read_rds("data_inputs/IMPACT_FACTORS/temp_data/enviro_input_dat_1723.rds")
 
 ```
 

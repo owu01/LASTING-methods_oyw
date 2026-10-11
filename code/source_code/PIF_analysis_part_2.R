@@ -127,7 +127,7 @@ names(sum.stats.PIF)[(1 + length(covar.vec)):(6 + length(covar.vec))] <-
 # defined by age, sex, and race.
 
 # Read CSV file of exposure
-disease.dat <- read_csv(file = paste0(file_location, "nhanes1518_agesexrace_merged_", 
+disease.dat <- read_csv(file = paste0(file_location, "nhanes1723_agesexrace_merged_", 
                                  version.date ,".csv"))
 
 disease.dat <- disease.dat[order(disease.dat$diet),]
