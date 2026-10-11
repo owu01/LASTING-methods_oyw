@@ -8,21 +8,22 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G                    # memory for the job
-#SBATCH --time=3-00:00:00            # time limit (days-hours:min:sec); BRR runs are slow
+#SBATCH --time=2-00:00:00            # time limit (days-hours:min:sec); must not exceed the partition limit
 #SBATCH --output=nci_sd_huss_%j.out  # %j = job ID
 #SBATCH --error=nci_sd_huss_%j.err
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=olivia.wu@tufts.edu
 
-# Load SAS (check the exact module name with:  module avail sas)
+# Load SAS 9.4 (it sits in the deprecated module tree, which must be loaded first)
 module purge
-module load sas
+module load modtree/deprecated
+module load SAS/9.4
 
 # Folder that contains your SAS program
-cd /cluster/tufts/lasting/shared/LASTING-methods_oyw/data_inputs/DIET/standard-deviations
+cd /cluster/tufts/lasting/shared/LASTING-methods_oyw/data_inputs/DIET/standard_deviations
 
-# Run SAS in batch mode; the log and listing files are saved next to the program
-sas Calculate_SD_nci_method_by_subgroup_HUSS.sas \
+# Run SAS in batch mode (sas_u8 is the actual SAS program; the "sas" alias does not work in batch scripts)
+sas_u8 Calculate_SD_nci_method_by_subgroup_HUSS.sas \
     -noterminal \
     -log Calculate_SD_nci_method_by_subgroup_HUSS.log \
     -print Calculate_SD_nci_method_by_subgroup_HUSS.lst
