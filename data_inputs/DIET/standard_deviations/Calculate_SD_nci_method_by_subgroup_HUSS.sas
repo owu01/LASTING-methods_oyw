@@ -21,7 +21,7 @@ LIBNAME _all_ CLEAR;
 ods graphics off;
 
 /*** Directory *************************************************************
-** >>> EDIT <<< Point this at YOUR OWN copy of the standard-deviations folder
+** >>> EDIT <<< Point this at YOUR OWN copy of the standard_deviations folder
 ** so you never overwrite the shared LASTING outputs. This folder must contain:
 **   in/       nhanes1723_incl_ssb_adj_clean_long.csv
 **             macro_input_LASTING_ALL_VARS.csv
@@ -33,11 +33,11 @@ ods graphics off;
 **              /cluster/tufts/lasting/shared/LASTING/standard-deviations/macros)
 ****************************************************************************/
 
-%let home = /cluster/tufts/lasting/shared/LASTING-methods_oyw/data_inputs/DIET/standard_deviations; 
+%let home = /cluster/tufts/lasting/shared/LASTING-methods_oyw/data_inputs/DIET/standard_deviations; /* >>> EDIT <<< */
 
-* >>> EDIT <<< Number of BRR replicates. Must be a multiple of 4 and at least the
-* number of strata (expected 30 for 2017-Mar 2020 + 2021-2023; confirm with the
-* strata count below). This SAME number must go in "endWeight" in the input CSV.;
+/* >>> EDIT <<< Number of BRR replicates. Must be a multiple of 4 and at least the
+   number of strata (expected 30 for 2017-Mar 2020 and 2021-2023, confirm with the
+   strata count below). This SAME number must go in "endWeight" in the input CSV. */
 %let nreps = 36;
 
 libname in "&home/in";
@@ -46,7 +46,7 @@ libname out "&home/out";
 * Include the required macros;
 %include "&home/macros/mixtran_macro_v2.21.sas";
 %include "&home/macros/distrib_macro_v2.2.sas";
-%include "&home/macros/simple_macro_v3.4_bmb.sas"; * Brooke's edited macro;
+%include "&home/macros/simple_macro_v3.4_bmb.sas"; /* edited macro from Brooke Bell */
 
 * Import cleaned 24-h dietary recall data;
 proc import OUT= WORK.nhanes
