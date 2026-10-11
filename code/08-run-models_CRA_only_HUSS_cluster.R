@@ -48,6 +48,26 @@ print(input_check)
 if (!all(input_check)) stop("Missing model input file(s): ",
                             paste(names(input_check)[!input_check], collapse = ", "))
 
+# HUSS EDIT: the cluster (Linux) treats file names as case-sensitive, so ".r" and
+# ".R" are different files there (not on Windows). find_file() returns the file
+# whatever the capitals of its name, so the source() calls below work on both.
+find_file <- function(path) {
+  if (file.exists(path)) return(path)
+  in_folder <- list.files(dirname(path), full.names = TRUE)
+  match <- in_folder[tolower(basename(in_folder)) == tolower(basename(path))]
+  if (length(match) == 1) return(match)
+  stop("Cannot find ", path, " (checked for any capitalisation)")
+}
+
+# HUSS EDIT: check every script the model loads before running anything
+scripts <- c("source_code/presimulate_pop_draws.r",
+             "source_code/presimulate_observed_disease_draws.r",
+             "source_code/PIF_analysis_part_1.r",
+             "source_code/PIF_analysis_part_2.r",
+             "source_code/PIF_analysis_part_3.r",
+             "functions/sum_by_strata.r")
+print(sapply(paste0("code/", scripts), find_file))
+
 
 ## ----start_clock----------------------------------------
 
@@ -139,7 +159,7 @@ nrow(pop)   # expect 48
 ## ----presim_pop-----------------------------------------
 
 # pre-simulate total population numbers
-source(paste0(code_location, "source_code/presimulate_pop_draws.r"))
+source(find_file(paste0(code_location, "source_code/presimulate_pop_draws.r")))   # HUSS EDIT: find_file()
 
 #' ## Health Models
 #' 
@@ -293,7 +313,7 @@ theomin <- primary_input_cra %>%
 ## ----presim_disease, results='hide'---------------------
 
 # pre-simulate mortality/incidence numbers, to be used in CRA simulations, as well for calculating reverse-engineered PAFs
-source(paste0(code_location, "source_code/presimulate_observed_disease_draws.r"))
+source(find_file(paste0(code_location, "source_code/presimulate_observed_disease_draws.r")))   # HUSS EDIT: find_file()
 
 
 #' 
@@ -439,14 +459,14 @@ foreach(ss = 1:length(diet.vec), .verbose = TRUE) %run% {
 
   # Part 1
   # Actually runs the simulations and calculates PIF for nsim1 simulations
-  source(paste0(code_location, "source_code/PIF_analysis_part_1.r")) 
+  source(find_file(paste0(code_location, "source_code/PIF_analysis_part_1.r")))   # HUSS EDIT: find_file() 
 
   # Part 2
-  source(paste0(code_location, "source_code/PIF_analysis_part_2.r"))
+  source(find_file(paste0(code_location, "source_code/PIF_analysis_part_2.r")))   # HUSS EDIT: find_file()
 
   # Part 3
   # Calculates Joint PIFs for each strata and each disease
-  source(paste0(code_location, "source_code/PIF_analysis_part_3.r")) 
+  source(find_file(paste0(code_location, "source_code/PIF_analysis_part_3.r")))   # HUSS EDIT: find_file() 
 
 }
 
