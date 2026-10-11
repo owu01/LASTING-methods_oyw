@@ -21,7 +21,7 @@ SECalculationMethod,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,BRR,
 BRRFayFactor,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3
 weightVariable,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_,RepWt_
 startWeight,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-endWeight,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36
+endWeight,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40
 breastmilkData,,,,,,,,,,,,,,,,,
 breastfeedingVariable,,,,,,,,,,,,,,,,,
 breastmilkID,,,,,,,,,,,,,,,,,

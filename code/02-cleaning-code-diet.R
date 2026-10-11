@@ -1703,7 +1703,7 @@ write_csv(nhanes5,
 ## ----results='hide', warning=FALSE, message=FALSE-------
 
 write_csv(nhanes5,
-          "data_inputs/DIET/standard_deviations/DATA/in/nhanes1723_incl_ssb_adj_clean_long.csv",
+          "data_inputs/DIET/standard_deviations/in/nhanes1723_incl_ssb_adj_clean_long.csv",
           na = "")
 
 # OW EDIT - SECTIon BEGIN

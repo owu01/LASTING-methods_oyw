@@ -36,9 +36,9 @@ ods graphics off;
 %let home = /cluster/tufts/lasting/shared/LASTING-methods_oyw/data_inputs/DIET/standard_deviations; /* >>> EDIT <<< */
 
 /* >>> EDIT <<< Number of BRR replicates. Must be a multiple of 4 and at least the
-   number of strata (expected 30 for 2017-Mar 2020 and 2021-2023, confirm with the
+   number of strata (39 in the 2017-Mar 2020 and 2021-2023 data, confirm with the
    strata count below). This SAME number must go in "endWeight" in the input CSV. */
-%let nreps = 36;
+%let nreps = 40;
 
 libname in "&home/in";
 libname out "&home/out";
@@ -83,11 +83,24 @@ quit;
 proc print data=new; run;  /* >>> EDIT <<< print so the counts appear in the output */
 proc print data=new1; run;
 
+/* >>> EDIT <<< PSUs per stratum, before and after merging PSU 3 into PSU 2 */
+proc freq data=nhanes_sort;
+   tables SDMVSTRA*SDMVPSU / list nopercent nocum;
+run;
+
 * Set repWT0 as wtnew (the combined-cycle weight created in script 02);
 data nhanes_sort1;
 set nhanes_sort;
 repWT_0 = ceil(wtnew);
 cluster = SDMVPSU;
+/* >>> EDIT <<< BRR needs exactly 2 PSUs per stratum. Some strata have 3,
+   so merge PSU 3 into PSU 2 within those strata */
+if SDMVPSU = 3 then cluster = 2;
+run;
+
+/* >>> EDIT <<< Check: every stratum should now show exactly 2 clusters */
+proc freq data=nhanes_sort1;
+   tables SDMVSTRA*cluster / list nopercent nocum;
 run;
 
 * Generate BRR replicate weights;
