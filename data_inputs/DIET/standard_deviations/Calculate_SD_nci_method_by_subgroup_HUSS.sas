@@ -33,7 +33,7 @@ ods graphics off;
 **              /cluster/tufts/lasting/shared/LASTING/standard-deviations/macros)
 ****************************************************************************/
 
-%let home = /cluster/tufts/lasting/shared/LASTING_Olivia/standard-deviations; 
+%let home = /cluster/tufts/lasting/shared/LASTING-methods_oyw/data_inputs/DIET/standard-deviations; 
 
 * >>> EDIT <<< Number of BRR replicates. Must be a multiple of 4 and at least the
 * number of strata (expected 30 for 2017-Mar 2020 + 2021-2023; confirm with the
