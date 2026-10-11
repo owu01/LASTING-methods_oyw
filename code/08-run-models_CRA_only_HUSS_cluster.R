@@ -43,33 +43,11 @@ output_dir <- paste0("outputs/model/output_", Sys.Date(), "/")
 input_files <- c("input_data", "rr_agesexrace", "food_to_bmi_effects_converted",
                  "food_to_sbp_effects_converted", "nhanes1518_agesexrace_merged",
                  "cvd_cancer_merged")
-
 input_check <- setNames(file.exists(dated(paste0(file_location, input_files))), input_files)
 print(input_check)
 if (!all(input_check)) stop("Missing model input file(s): ",
                             paste(names(input_check)[!input_check], collapse = ", "))
 
-#Stopped due to missing model inputs - check what's actually there
-       #  fl <- "data_inputs/FINAL/model_data/"
-        # needed <- c("rr_agesexrace", "food_to_bmi_effects_converted", "food_to_sbp_effects_converted",
-                    # "nhanes1518_agesexrace_merged", "cvd_cancer_merged")
-        
-        # for (stem in needed) {
-          # target <- dated(paste0(fl, stem))
-          # found  <- list.files(fl, pattern = paste0("^", stem, "_.*\\.csv$"))
-          # cat(stem, "\n  expected:", basename(target), " exists:", file.exists(target),
-              # "\n  found:   ", if (length(found) == 0) "NONE" else paste(found, collapse = ", "), "\n")
-        # }
-
-#make copies under expected names
-        # for (stem in needed) {
-          # target <- dated(paste0(fl, stem))
-          # found  <- list.files(fl, pattern = paste0("^", stem, "_.*\\.csv$"), full.names = TRUE)
-          # if (!file.exists(target) && length(found) == 1) {
-            # file.copy(found, target)
-            # cat("copied", basename(found), "->", basename(target), "\n")
-          # }
-        # }
 
 ## ----start_clock----------------------------------------
 
@@ -99,8 +77,11 @@ if(length(year.vec) > 1) {
 ## ----nsims----------------------------------------------
 
 # Number of simulations
-# HUSS EDIT: 3 for the test run; set to 1000 for the full run
-nsim1 <- 1000
+# HUSS EDIT: number of simulations comes from the batch file (NSIM1=10 in
+# run_cra_test.sh, NSIM1=1000 in run_cra.sh). Running in RStudio without a
+# batch file uses 3.
+nsim1 <- as.integer(Sys.getenv("NSIM1", "3"))
+print(paste("Number of simulations:", nsim1))
 n.sims <- nsim1
 
 
@@ -335,7 +316,7 @@ print(output_location)
 # FALSE = one after another in this R session (works on Windows; use for testing).
 # TRUE  = in parallel. On Windows ("PSOCK") the CRA scripts can fail with
 #         "object not found", so use TRUE on the cluster (Linux) or a Mac.
-use_parallel <- TRUE
+use_parallel <- nzchar(Sys.getenv("SLURM_JOB_ID"))   # TRUE on the cluster, FALSE in RStudio
 
 if (use_parallel) {
   get_os <- function(){
@@ -358,6 +339,7 @@ if (use_parallel) {
 
   cluster_type <- if (get_os() == "windows") {"PSOCK"} else {"FORK"}
 
+  # HUSS EDIT: use the CPUs requested in the batch file, not every core on the node
   no_cores <- min(as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", detectCores() - 1)),
                   length(diet.vec))
   s = 1 # initialize iteration variable before forking
