@@ -25,8 +25,8 @@ export OUTPUT_BASE=/cluster/tufts/lasting/shared/LASTING-methods_oyw_cra/outputs
 mkdir -p "$OUTPUT_BASE"
 
 # Safety check: this space is shared and filled up before. Do not start unless
-# there is at least 12 GB free (one diet at 100 simulations needs about 7-8 GB).
-MIN_FREE_GB=12
+# there is at least 4 GB free (US20 at 100 simulations used 1.3 GB).
+MIN_FREE_GB=4
 FREE_GB=$(df -BG --output=avail /cluster/tufts/lasting | tail -1 | tr -dc '0-9')
 echo "Free space in /cluster/tufts/lasting: ${FREE_GB} GB"
 if [ "$FREE_GB" -lt "$MIN_FREE_GB" ]; then
