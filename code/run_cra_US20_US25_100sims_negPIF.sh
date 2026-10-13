@@ -1,28 +1,30 @@
 #!/bin/bash
-# Slurm batch script: CRA-only model, TWO diet patterns (US20 and US25) run at the
-# same time (in parallel), 100 simulations.
+# Slurm batch script: SENSITIVITY ANALYSIS (negative PIFs kept), TWO diet patterns
+# (US20 and US25) run at the same time, 100 simulations. Counterfactuals that are
+# less favourable than current intake count as added disease instead of zero benefit.
 # Results go to the LASTING project space:
-#   /cluster/tufts/lasting/shared/LASTING-methods_oyw_cra/outputs/model/output_<date>/CRA/US20/ and /US25/
-# Submit from the folder this file is in with:   sbatch run_cra_US20_US25_100sims.sh
+#   /cluster/tufts/lasting/shared/LASTING-methods_oyw_cra/outputs/model_negPIF/output_<date>/CRA/US20/ and /US25/
+# Submit from the folder this file is in with:   sbatch run_cra_US20_US25_100sims_negPIF.sh
 
-#SBATCH --job-name=cra_US20_US25
+#SBATCH --job-name=negPIF_US20_US25
 #SBATCH --partition=batch            # Tufts general-purpose partition
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3            # one core per diet (2) + 1 spare
 #SBATCH --mem=32G                    # one diet at 100 simulations used about 7 GB; two run together
 #SBATCH --time=1-00:00:00            # time limit (days-hours:min:sec)
-#SBATCH --output=cra_US20_US25_%j.out       # %j = job ID
-#SBATCH --error=cra_US20_US25_%j.err
+#SBATCH --output=negPIF_US20_US25_%j.out       # %j = job ID
+#SBATCH --error=negPIF_US20_US25_%j.err
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=olivia.wu@tufts.edu
 
 # Run settings, read by 08-run-models_CRA_only_HUSS_cluster.R
+export ALLOW_NEGATIVE_PIF=TRUE        # sensitivity analysis: keep negative PIFs
 export NSIM1=100                     # number of simulations
 export DIETS=US20,US25                 # diet patterns for this job (run in parallel)
 
 # Where results are written: the LASTING project space (shared with the whole team)
-export OUTPUT_BASE=/cluster/tufts/lasting/shared/LASTING-methods_oyw_cra/outputs/model
+export OUTPUT_BASE=/cluster/tufts/lasting/shared/LASTING-methods_oyw_cra/outputs/model_negPIF   # separate from main results
 mkdir -p "$OUTPUT_BASE"
 
 # Safety check: this space is shared and filled up before. Do not start unless
