@@ -24,6 +24,13 @@
 # First, we create various R objects where we store final output, as well as 
 # intermediate outputs needed to calculate the PIFs.
 
+# HUSS EDIT (sensitivity analysis): by default, negative PIFs are set to 0, as in
+# LASTING. If the batch file sets ALLOW_NEGATIVE_PIF=TRUE, negative PIFs are kept,
+# so a counterfactual that is LESS favourable than current intake (e.g. more red
+# meat) counts as added disease instead of zero benefit.
+allow_negative_pif <- isTRUE(as.logical(Sys.getenv("ALLOW_NEGATIVE_PIF", "FALSE")))
+if (allow_negative_pif) print("SENSITIVITY ANALYSIS: negative PIFs are kept (not set to 0)")
+
 # list of diseases draws, one element per dietary factor
 disease.list <- list()
 
@@ -593,8 +600,9 @@ for (r in 1:length(rfvec_cra)) {  # Start risk factor loop
             # If counterfactual is more harmful than current exposure 
             # distribution, then we can get negative numbers for PIF. 
             # Just set it to zero in that case
+            # HUSS EDIT: unless the sensitivity analysis keeps negative PIFs
             
-            if(pif[[j]][i, k] < 0)
+            if(!allow_negative_pif && pif[[j]][i, k] < 0)
               pif[[j]][i, k] <- 0
             
             # Still within the k-loop: Print various inputs and outptus for 
